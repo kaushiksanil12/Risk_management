@@ -9,10 +9,14 @@ namespace ERMS.API.Services.Implementations
     public class RiskService : IRiskService
     {
         private readonly IRiskRepository _riskRepo;
+        private readonly IEmailService _emailService;
+        private readonly ILogger<RiskService> _logger;
 
-        public RiskService(IRiskRepository riskRepo)
+        public RiskService(IRiskRepository riskRepo, IEmailService emailService, ILogger<RiskService> logger)
         {
             _riskRepo = riskRepo;
+            _emailService = emailService;
+            _logger = logger;
         }
 
         public async Task<ApiResponse<List<RiskResponse>>> SearchAsync(int userId, string adminFlag, string? buId, string? fyId, int? riskCatId, string? status, string? search)
@@ -73,6 +77,27 @@ namespace ERMS.API.Services.Implementations
             var oldStatus = risk.Status;
             await _riskRepo.UpdateStatusAsync(riskId, ApiConstants.RiskStatuses.Submitted, "", userId);
             await _riskRepo.InsertHistoryAsync(riskId, oldStatus, ApiConstants.RiskStatuses.Submitted, "Submitted for Review", "", userId);
+
+            // Fire-and-forget: email all Champions of this BU
+            var recipients = await _riskRepo.GetEmailRecipientsAsync(riskId);
+            if (recipients.Owner != null && recipients.Champions.Any())
+            {
+                foreach (var champion in recipients.Champions)
+                {
+                    _ = Task.Run(() => _emailService.SendRiskSubmittedAsync(
+                        champion.ChampionEmail,
+                        champion.ChampionName,
+                        recipients.Owner.RiskTitle,
+                        riskId,
+                        recipients.Owner.BUName
+                    ));
+                }
+            }
+            else
+            {
+                _logger.LogWarning("No active champions found for RiskId {RiskId}", riskId);
+            }
+
             return ApiResponse<bool>.Ok(true, "Risk submitted for review.");
         }
 
@@ -104,6 +129,34 @@ namespace ERMS.API.Services.Implementations
             var oldStatus = risk.Status;
             await _riskRepo.UpdateStatusAsync(riskId, newStatus, request.Remarks, userId);
             await _riskRepo.InsertHistoryAsync(riskId, oldStatus, newStatus, request.Action, request.Remarks, userId);
+
+            // Fire-and-forget: email the Risk Owner
+            var recipients = await _riskRepo.GetEmailRecipientsAsync(riskId);
+            var owner = recipients.Owner;
+            if (owner != null)
+            {
+                _ = request.Action switch
+                {
+                    "Approve"  => Task.Run(() => _emailService.SendRiskApprovedAsync(
+                                      owner.OwnerEmail, owner.OwnerName,
+                                      owner.RiskTitle,  riskId)),
+
+                    "Reject"   => Task.Run(() => _emailService.SendRiskRejectedAsync(
+                                      owner.OwnerEmail, owner.OwnerName,
+                                      owner.RiskTitle,  riskId, request.Remarks ?? "")),
+
+                    "SendBack" => Task.Run(() => _emailService.SendRiskSentBackAsync(
+                                      owner.OwnerEmail, owner.OwnerName,
+                                      owner.RiskTitle,  riskId, request.Remarks ?? "")),
+
+                    _          => Task.CompletedTask
+                };
+            }
+            else
+            {
+                _logger.LogWarning("No owner found for RiskId {RiskId} — skipping email", riskId);
+            }
+
             return ApiResponse<bool>.Ok(true, $"Risk {request.Action.ToLower()}d successfully.");
         }
 
@@ -115,6 +168,20 @@ namespace ERMS.API.Services.Implementations
             var oldStatus = risk.Status;
             await _riskRepo.UpdateStatusAsync(riskId, ApiConstants.RiskStatuses.Closed, "", userId);
             await _riskRepo.InsertHistoryAsync(riskId, oldStatus, ApiConstants.RiskStatuses.Closed, "Closed", "", userId);
+
+            // Fire-and-forget: email the Risk Owner
+            var recipients = await _riskRepo.GetEmailRecipientsAsync(riskId);
+            var owner = recipients.Owner;
+            if (owner != null)
+            {
+                _ = Task.Run(() => _emailService.SendRiskClosedAsync(
+                    owner.OwnerEmail,
+                    owner.OwnerName,
+                    owner.RiskTitle,
+                    riskId
+                ));
+            }
+
             return ApiResponse<bool>.Ok(true, "Risk closed successfully.");
         }
     }

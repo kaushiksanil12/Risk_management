@@ -12,5 +12,6 @@ namespace ERMS.API.Repositories.Interfaces
         Task UpdateStatusAsync(int riskId, string newStatus, string? remarks, int changedBy);
         Task InsertHistoryAsync(int riskId, string? oldStatus, string newStatus, string action, string? remarks, int changedBy);
         Task<IEnumerable<RiskHistoryResponse>> GetHistoryByRiskAsync(int riskId);
+        Task<(RiskEmailOwnerDto? Owner, IEnumerable<RiskEmailChampionDto> Champions)> GetEmailRecipientsAsync(int riskId);
     }
 }

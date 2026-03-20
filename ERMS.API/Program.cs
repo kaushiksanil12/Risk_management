@@ -15,6 +15,8 @@ Log.Logger = new LoggerConfiguration()
 
 builder.Host.UseSerilog();
 
+// Email settings
+builder.Services.Configure<ERMS.API.Models.Email.SmtpSettings>(builder.Configuration.GetSection("Smtp"));
 // Add services
 builder.Services.AddControllers()
     .AddJsonOptions(options =>
@@ -83,6 +85,7 @@ builder.Services.AddScoped<IFunctionService, FunctionService>();
 builder.Services.AddScoped<IUserPermissionService, UserPermissionService>();
 builder.Services.AddScoped<IRiskService, RiskService>();
 builder.Services.AddScoped<IDashboardService, DashboardService>();
+builder.Services.AddScoped<IEmailService, EmailService>();
 
 var app = builder.Build();
 

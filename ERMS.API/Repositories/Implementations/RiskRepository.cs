@@ -129,5 +129,18 @@ namespace ERMS.API.Repositories.Implementations
                 new { p_RiskId = riskId },
                 commandType: CommandType.StoredProcedure);
         }
+        public async Task<(RiskEmailOwnerDto? Owner, IEnumerable<RiskEmailChampionDto> Champions)>
+            GetEmailRecipientsAsync(int riskId)
+        {
+            using var conn = CreateConnection();
+            using var multi = await conn.QueryMultipleAsync(
+                "sp_Risk_GetEmailRecipients",
+                new { p_RiskId = riskId },
+                commandType: CommandType.StoredProcedure
+            );
+            var owner = await multi.ReadFirstOrDefaultAsync<RiskEmailOwnerDto>();
+            var champions = await multi.ReadAsync<RiskEmailChampionDto>();
+            return (owner, champions);
+        }
     }
 }
