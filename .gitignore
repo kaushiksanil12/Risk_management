@@ -1,0 +1,47 @@
+## .NET / Visual Studio
+bin/
+obj/
+*.user
+*.suo
+*.userosscache
+*.sln.docstates
+*.userprefs
+
+## Build results
+[Dd]ebug/
+[Rr]elease/
+x64/
+x86/
+build/
+bld/
+
+## NuGet
+**/packages/*
+!**/packages/build/
+*.nupkg
+**/[Pp]ackages/
+
+## Visual Studio
+.vs/
+*.rsuser
+*.sln.iml
+launchSettings.json.bak
+
+## Rider
+.idea/
+*.sln.iml
+
+## Logs
+Logs/
+*.log
+
+## OS
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+.DS_Store
+*.swp
+*~
+
+## User-specific
+appsettings.Development.json

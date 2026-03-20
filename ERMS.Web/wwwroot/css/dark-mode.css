@@ -1,0 +1,24 @@
+/* Dark mode overrides */
+[data-theme="dark"] {
+    --bg: #1a1d23;
+    --surface: #22252b;
+    --text: #e4e6ea;
+    --text-muted: #8b8e94;
+    --border: #33363c;
+    --shadow: 0 2px 12px rgba(0,0,0,0.2);
+}
+[data-theme="dark"] .topnav { background: var(--surface); border-color: var(--border); }
+[data-theme="dark"] .card { background: var(--surface); }
+[data-theme="dark"] .card-header { border-color: var(--border); }
+[data-theme="dark"] .table { color: var(--text); --bs-table-bg: transparent; }
+[data-theme="dark"] .table th { color: var(--text-muted); }
+[data-theme="dark"] .form-control, [data-theme="dark"] .form-select { background: #2a2d33; border-color: var(--border); color: var(--text); }
+[data-theme="dark"] .form-control:focus, [data-theme="dark"] .form-select:focus { background: #2f333a; border-color: var(--primary-light); }
+[data-theme="dark"] .modal-content { background: var(--surface); color: var(--text); }
+[data-theme="dark"] .modal-header { border-color: var(--border); }
+[data-theme="dark"] .modal-footer { border-color: var(--border); }
+[data-theme="dark"] .btn-close { filter: invert(1); }
+[data-theme="dark"] .dropdown-menu { background: var(--surface); border-color: var(--border); }
+[data-theme="dark"] .dropdown-item { color: var(--text); }
+[data-theme="dark"] .dropdown-item:hover { background: rgba(255,255,255,0.05); }
+[data-theme="dark"] .kpi-card:hover { box-shadow: 0 6px 20px rgba(0,0,0,0.25); }

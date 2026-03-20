@@ -1,0 +1,84 @@
+@{ ViewData["Title"] = "User Management"; }
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <h5 class="mb-0">User Management</h5>
+    <button class="btn btn-primary rounded-pill" onclick="openUserModal()"><i class="bi bi-plus-lg me-1"></i>Add User</button>
+</div>
+<div class="card mb-4"><div class="card-body"><div class="row g-2 align-items-end">
+    <div class="col-md-4"><input type="text" class="form-control" id="searchUser" placeholder="Search by username or name..."/></div>
+    <div class="col-md-3"><select class="form-select" id="statusFilter"><option value="">All Status</option><option value="Active">Active</option><option value="Inactive">Inactive</option></select></div>
+    <div class="col-md-2"><button class="btn btn-outline-primary w-100" onclick="loadUsers()"><i class="bi bi-search me-1"></i>Search</button></div>
+</div></div></div>
+<div class="card"><div class="card-body"><div class="table-responsive"><table class="table table-hover"><thead><tr><th>ID</th><th>Username</th><th>Full Name</th><th>Login Type</th><th>Status</th><th>Admin</th><th>Locked</th><th>Actions</th></tr></thead><tbody id="userTableBody"><tr><td colspan="8" class="text-center text-muted">Loading...</td></tr></tbody></table></div></div></div>
+
+<div class="modal fade" id="userModal" tabindex="-1"><div class="modal-dialog"><div class="modal-content"><div class="modal-header"><h5 class="modal-title" id="userModalTitle">Add User</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div><div class="modal-body">
+    <input type="hidden" id="editUserId"/>
+    <div class="mb-3"><label class="form-label">Username</label><input type="text" class="form-control" id="fUsername"/></div>
+    <div class="mb-3"><label class="form-label">Login Type</label><select class="form-select" id="fLoginType" onchange="togglePwdField()"><option value="Custom">Custom</option><option value="LDAP_TMG">LDAP_TMG</option></select></div>
+    <div class="mb-3" id="pwdGroup"><label class="form-label">Password</label><input type="password" class="form-control" id="fPassword"/></div>
+    <div class="mb-3"><label class="form-label">Full Name</label><input type="text" class="form-control" id="fFullName"/></div>
+    <div class="mb-3"><label class="form-label">Email</label><input type="email" class="form-control" id="fEmail"/></div>
+    <div class="mb-3"><label class="form-label">Mobile</label><input type="text" class="form-control" id="fMobile"/></div>
+    <div class="mb-3"><label class="form-label">Status</label><select class="form-select" id="fStatus"><option value="Active">Active</option><option value="Inactive">Inactive</option></select></div>
+    <div class="form-check mb-3"><input class="form-check-input" type="checkbox" id="fAdminFlag"/><label class="form-check-label" for="fAdminFlag">Administrator</label></div>
+</div><div class="modal-footer"><button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button><button type="button" class="btn btn-primary" onclick="saveUser()" id="btnSaveUser">Save</button></div></div></div></div>
+
+@section scripts {
+<script>
+function loadUsers() {
+    const s = document.getElementById('searchUser').value;
+    const st = document.getElementById('statusFilter').value;
+    apiCall('GET', `/api/user/search?search=${encodeURIComponent(s)}&status=${encodeURIComponent(st)}`).then(r => {
+        const tb = document.getElementById('userTableBody');
+        if (!r.success || !r.data || r.data.length === 0) { tb.innerHTML = '<tr><td colspan="8" class="text-center text-muted">No users found</td></tr>'; return; }
+        tb.innerHTML = r.data.map(u => `<tr>
+            <td>${u.userId}</td><td>${u.username}</td><td>${u.fullName}</td><td>${u.loginType}</td>
+            <td><span class="badge ${u.status==='Active'?'bg-success':'bg-secondary'} rounded-pill">${u.status}</span></td>
+            <td>${u.adminFlag==='Y'?'<i class="bi bi-check-circle text-success"></i>':''}</td>
+            <td>${u.isLocked?'<i class="bi bi-lock-fill text-danger"></i>':''}</td>
+            <td>
+                <button class="btn btn-sm btn-outline-primary me-1" onclick="editUser(${u.userId})"><i class="bi bi-pencil"></i></button>
+                ${u.isLocked?`<button class="btn btn-sm btn-outline-warning me-1" onclick="unlockUser(${u.userId})"><i class="bi bi-unlock"></i></button>`:''}
+                <a class="btn btn-sm btn-outline-info" href="/Admin/Permissions?userId=${u.userId}"><i class="bi bi-shield-lock"></i></a>
+            </td></tr>`).join('');
+    });
+}
+function openUserModal() {
+    document.getElementById('editUserId').value = '';
+    document.getElementById('userModalTitle').textContent = 'Add User';
+    document.getElementById('fUsername').value = ''; document.getElementById('fUsername').disabled = false;
+    document.getElementById('fLoginType').value = 'Custom'; document.getElementById('fPassword').value = '';
+    document.getElementById('fFullName').value = ''; document.getElementById('fEmail').value = '';
+    document.getElementById('fMobile').value = ''; document.getElementById('fStatus').value = 'Active';
+    document.getElementById('fAdminFlag').checked = false; togglePwdField();
+    new bootstrap.Modal(document.getElementById('userModal')).show();
+}
+function editUser(id) {
+    apiCall('GET', `/api/user/${id}`).then(r => {
+        if (!r.success) { showToast(r.message, 'danger'); return; }
+        const u = r.data;
+        document.getElementById('editUserId').value = u.userId;
+        document.getElementById('userModalTitle').textContent = 'Edit User';
+        document.getElementById('fUsername').value = u.username; document.getElementById('fUsername').disabled = true;
+        document.getElementById('fLoginType').value = u.loginType; document.getElementById('fPassword').value = '';
+        document.getElementById('fFullName').value = u.fullName; document.getElementById('fEmail').value = u.email;
+        document.getElementById('fMobile').value = u.mobile || ''; document.getElementById('fStatus').value = u.status;
+        document.getElementById('fAdminFlag').checked = u.adminFlag === 'Y'; togglePwdField();
+        new bootstrap.Modal(document.getElementById('userModal')).show();
+    });
+}
+function saveUser() {
+    const id = document.getElementById('editUserId').value;
+    const body = { username: document.getElementById('fUsername').value, loginType: document.getElementById('fLoginType').value, password: document.getElementById('fPassword').value, fullName: document.getElementById('fFullName').value, email: document.getElementById('fEmail').value, mobile: document.getElementById('fMobile').value, status: document.getElementById('fStatus').value, adminFlag: document.getElementById('fAdminFlag').checked ? 'Y' : 'N' };
+    const url = id ? `/api/user/update/${id}` : '/api/user/create';
+    const method = id ? 'PUT' : 'POST';
+    apiCall(method, url, body).then(r => {
+        showToast(r.message, r.success ? 'success' : 'danger');
+        if (r.success) { bootstrap.Modal.getInstance(document.getElementById('userModal')).hide(); loadUsers(); }
+    });
+}
+function unlockUser(id) { apiCall('POST', `/api/user/unlock/${id}`).then(r => { showToast(r.message, r.success?'success':'danger'); loadUsers(); }); }
+function togglePwdField() { document.getElementById('pwdGroup').style.display = document.getElementById('fLoginType').value === 'Custom' ? '' : 'none'; }
+document.getElementById('userModal').addEventListener('hidden.bs.modal', () => { document.getElementById('fUsername').disabled = false; });
+document.addEventListener('DOMContentLoaded', loadUsers);
+</script>
+}

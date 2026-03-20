@@ -1,0 +1,77 @@
+@{
+    var currentController = ViewContext.RouteData.Values["controller"]?.ToString() ?? "";
+    var currentAction = ViewContext.RouteData.Values["action"]?.ToString() ?? "";
+    var userName = Context.Session.GetString("FullName") ?? "User";
+    var isAdmin = Context.Session.GetString("AdminFlag") == "Y";
+    var initials = userName.Length > 0 ? userName.Substring(0, 1).ToUpper() : "U";
+    if (userName.Contains(" ")) {
+        var parts = userName.Split(' ');
+        initials = parts[0].Substring(0, 1).ToUpper() + parts[^1].Substring(0, 1).ToUpper();
+    }
+
+    bool IsActive(string ctrl, string action = "") {
+        if (string.IsNullOrEmpty(action)) return currentController == ctrl;
+        return currentController == ctrl && currentAction == action;
+    }
+}
+
+<aside class="sidebar" id="sidebar">
+    <div class="sidebar-header">
+        <div class="sidebar-logo">
+            <img src="~/images/logo.svg" alt="ERMS" width="32" height="32"/>
+            <span class="sidebar-brand">ERMS</span>
+        </div>
+        <button class="sidebar-toggle" id="sidebarToggle" type="button">
+            <i class="bi bi-chevron-left"></i>
+        </button>
+    </div>
+
+    <nav class="sidebar-nav">
+        <ul class="nav flex-column">
+            <li class="nav-item">
+                <a class="nav-link @(IsActive("Home","Dashboard") ? "active" : "")" href="/Home/Dashboard">
+                    <i class="bi bi-speedometer2"></i><span>Dashboard</span>
+                </a>
+            </li>
+            <li class="nav-item">
+                <a class="nav-link @(IsActive("Risk","Index") || IsActive("Risk","Create") || IsActive("Risk","Edit") || IsActive("Risk","Detail") || IsActive("Risk","Review") ? "active" : "")" href="/Risk/Index">
+                    <i class="bi bi-shield-exclamation"></i><span>Risk Register</span>
+                </a>
+            </li>
+
+            @if (isAdmin) {
+                <li class="nav-divider"><span>Administration</span></li>
+                <li class="nav-item">
+                    <a class="nav-link @(IsActive("Admin","Users") ? "active" : "")" href="/Admin/Users">
+                        <i class="bi bi-people"></i><span>Users</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link @(IsActive("Admin","BU") ? "active" : "")" href="/Admin/BU">
+                        <i class="bi bi-building"></i><span>Business Units</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link @(IsActive("Admin","RiskCategory") ? "active" : "")" href="/Admin/RiskCategory">
+                        <i class="bi bi-tags"></i><span>Risk Categories</span>
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link @(IsActive("Admin","Functions") ? "active" : "")" href="/Admin/Functions">
+                        <i class="bi bi-diagram-3"></i><span>Functions</span>
+                    </a>
+                </li>
+            }
+        </ul>
+    </nav>
+
+    <div class="sidebar-footer">
+        <div class="user-info">
+            <div class="user-avatar">@initials</div>
+            <div class="user-details">
+                <span class="user-name">@userName</span>
+                <a href="/Account/Logout" class="logout-link"><i class="bi bi-box-arrow-right"></i> Logout</a>
+            </div>
+        </div>
+    </div>
+</aside>

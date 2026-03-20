@@ -1,0 +1,27 @@
+@{ ViewData["Title"] = "Edit Risk"; var riskId = ViewData["RiskId"]; }
+<div class="mb-4"><a href="/Risk/Index" class="btn btn-outline-secondary rounded-pill"><i class="bi bi-arrow-left me-1"></i>Back to Risks</a></div>
+<div class="card"><div class="card-header"><h5 class="mb-0">Edit Risk #@riskId</h5></div><div class="card-body">
+    <div class="row g-3">
+        <div class="col-md-4"><label class="form-label">Business Unit</label><select class="form-select" id="fBU"></select></div>
+        <div class="col-md-4"><label class="form-label">Financial Year</label><select class="form-select" id="fFY"></select></div>
+        <div class="col-md-4"><label class="form-label">Risk Category</label><select class="form-select" id="fCat" onchange="loadSubCats()"></select></div>
+        <div class="col-md-4"><label class="form-label">Sub-Category</label><select class="form-select" id="fSubCat"></select></div>
+        <div class="col-md-4"><label class="form-label">Function</label><select class="form-select" id="fFunc"></select></div>
+        <div class="col-md-4"><label class="form-label">Impact Level</label><select class="form-select" id="fImpact"><option>High</option><option>Medium</option><option>Low</option></select></div>
+        <div class="col-md-4"><label class="form-label">Likelihood</label><select class="form-select" id="fLike"><option>High</option><option>Medium</option><option>Low</option></select></div>
+        <div class="col-12"><label class="form-label">Risk Title</label><input type="text" class="form-control" id="fTitle" maxlength="200"/></div>
+        <div class="col-12"><label class="form-label">Description</label><textarea class="form-control" id="fDesc" rows="4"></textarea></div>
+        <div class="col-12"><button class="btn btn-primary rounded-pill me-2" onclick="updateRisk()"><i class="bi bi-save me-1"></i>Update</button><button class="btn btn-success rounded-pill" onclick="updateAndSubmit()"><i class="bi bi-send me-1"></i>Update & Submit</button></div>
+    </div>
+</div></div>
+@section scripts {
+<script>
+const riskId = @riskId;
+async function loadAll(){await loadDropdowns();const r=await apiCall('GET',`/api/risk/${riskId}`);if(!r.success){showToast(r.message,'danger');return}const k=r.data;document.getElementById('fBU').value=k.buId;document.getElementById('fFY').value=k.fyId;document.getElementById('fCat').value=k.riskCatId;await loadSubCats();document.getElementById('fSubCat').value=k.riskSubCatId;document.getElementById('fFunc').value=k.functionId;document.getElementById('fImpact').value=k.impactLevel;document.getElementById('fLike').value=k.likelihood;document.getElementById('fTitle').value=k.riskTitle;document.getElementById('fDesc').value=k.description}
+async function loadDropdowns(){const[bus,fys,cats,fns]=await Promise.all([apiCall('GET','/api/bu/dropdown'),apiCall('GET','/api/permission/fy/dropdown'),apiCall('GET','/api/riskcategory/dropdown'),apiCall('GET','/api/function/dropdown')]);if(bus.success)bus.data.forEach(d=>{const o=document.createElement('option');o.value=d.value;o.text=d.text;document.getElementById('fBU').appendChild(o)});if(fys.success)fys.data.forEach(d=>{const o=document.createElement('option');o.value=d.value;o.text=d.text;document.getElementById('fFY').appendChild(o)});if(cats.success)cats.data.forEach(d=>{const o=document.createElement('option');o.value=d.riskCatId;o.text=d.riskCatName;document.getElementById('fCat').appendChild(o)});if(fns.success)fns.data.forEach(d=>{const o=document.createElement('option');o.value=d.value;o.text=d.text;document.getElementById('fFunc').appendChild(o)})}
+async function loadSubCats(){const catId=document.getElementById('fCat').value;document.getElementById('fSubCat').innerHTML='';const r=await apiCall('GET',`/api/risksubcategory/dropdown?riskCatId=${catId}`);if(r.success)r.data.forEach(d=>{const o=document.createElement('option');o.value=d.riskSubCatId;o.text=d.riskSubCatName;document.getElementById('fSubCat').appendChild(o)})}
+function getBody(){return{buId:document.getElementById('fBU').value,fyId:document.getElementById('fFY').value,riskCatId:parseInt(document.getElementById('fCat').value)||0,riskSubCatId:parseInt(document.getElementById('fSubCat').value)||0,functionId:parseInt(document.getElementById('fFunc').value)||0,riskTitle:document.getElementById('fTitle').value,description:document.getElementById('fDesc').value,impactLevel:document.getElementById('fImpact').value,likelihood:document.getElementById('fLike').value}}
+function updateRisk(){apiCall('PUT',`/api/risk/update/${riskId}`,getBody()).then(r=>{showToast(r.message,r.success?'success':'danger');if(r.success)window.location.href='/Risk/Index'})}
+function updateAndSubmit(){apiCall('PUT',`/api/risk/update/${riskId}`,getBody()).then(r=>{if(!r.success){showToast(r.message,'danger');return}apiCall('POST',`/api/risk/submit/${riskId}`).then(r2=>{showToast(r2.message,r2.success?'success':'danger');if(r2.success)window.location.href='/Risk/Index'})})}
+document.addEventListener('DOMContentLoaded',loadAll);
+</script>}

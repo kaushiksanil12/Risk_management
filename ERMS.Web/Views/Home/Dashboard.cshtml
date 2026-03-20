@@ -1,0 +1,44 @@
+@{ ViewData["Title"] = "Dashboard"; }
+
+<div class="row g-4 mb-4" id="kpiCards">
+    <div class="col-md-3"><div class="card kpi-card kpi-blue"><div class="card-body"><div class="kpi-icon"><i class="bi bi-bar-chart-fill"></i></div><div class="kpi-data"><h3 id="totalRisks">-</h3><span>Total Risks</span></div></div></div></div>
+    <div class="col-md-3"><div class="card kpi-card kpi-red"><div class="card-body"><div class="kpi-icon"><i class="bi bi-exclamation-triangle-fill"></i></div><div class="kpi-data"><h3 id="highImpact">-</h3><span>High Impact</span></div></div></div></div>
+    <div class="col-md-3"><div class="card kpi-card kpi-orange"><div class="card-body"><div class="kpi-icon"><i class="bi bi-clock-fill"></i></div><div class="kpi-data"><h3 id="pendingReview">-</h3><span>Pending Review</span></div></div></div></div>
+    <div class="col-md-3"><div class="card kpi-card kpi-green"><div class="card-body"><div class="kpi-icon"><i class="bi bi-check-circle-fill"></i></div><div class="kpi-data"><h3 id="closedRisks">-</h3><span>Closed</span></div></div></div></div>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-md-6"><div class="card"><div class="card-header"><h6 class="mb-0">Risks by Status</h6></div><div class="card-body" style="height:300px;position:relative"><canvas id="statusChart"></canvas></div></div></div>
+    <div class="col-md-6"><div class="card"><div class="card-header"><h6 class="mb-0">Risks by Business Unit</h6></div><div class="card-body" style="height:300px;position:relative"><canvas id="buChart"></canvas></div></div></div>
+</div>
+
+<div class="row g-4 mb-4">
+    <div class="col-md-6"><div class="card"><div class="card-header"><h6 class="mb-0">Risks by Category</h6></div><div class="card-body" style="height:300px;position:relative"><canvas id="catChart"></canvas></div></div></div>
+    <div class="col-md-6"><div class="card"><div class="card-header"><h6 class="mb-0">Risks by Financial Year</h6></div><div class="card-body" style="height:300px;position:relative"><canvas id="fyChart"></canvas></div></div></div>
+</div>
+
+<div class="row g-4">
+    <div class="col-12">
+        <div class="card">
+            <div class="card-header"><h6 class="mb-0"><i class="bi bi-exclamation-triangle text-danger me-2"></i>High Impact Alerts</h6></div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-hover" id="alertsTable">
+                        <thead><tr><th>Risk Title</th><th>BU</th><th>Category</th><th>Impact</th><th>Status</th><th>Date</th></tr></thead>
+                        <tbody id="alertsBody"><tr><td colspan="6" class="text-center text-muted">Loading...</td></tr></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section scripts {
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+    <script src="~/js/dashboard.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            loadDashboard(@Context.Session.GetInt32("UserId"), '@Context.Session.GetString("AdminFlag")');
+        });
+    </script>
+}

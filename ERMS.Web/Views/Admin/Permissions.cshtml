@@ -1,0 +1,12 @@
+@{ ViewData["Title"] = "User Permissions"; var targetUserId = ViewData["TargetUserId"]; }
+<div class="mb-4"><a href="/Admin/Users" class="btn btn-outline-secondary rounded-pill"><i class="bi bi-arrow-left me-1"></i>Back to Users</a></div>
+<h5 class="mb-4">Permissions for User #@targetUserId</h5>
+<div class="card"><div class="card-body"><div class="table-responsive"><table class="table table-hover"><thead><tr><th>Business Unit</th><th>BU Status</th><th>Current Role</th><th>Action</th></tr></thead><tbody id="permBody"><tr><td colspan="4" class="text-center text-muted">Loading...</td></tr></tbody></table></div></div></div>
+@section scripts {
+<script>
+const targetUserId = @targetUserId;
+const roleNames={O:'Owner',C:'Champion',V:'Viewer',N:'None'};
+function loadPerms(){apiCall('GET',`/api/permission/byuser/${targetUserId}`).then(r=>{const tb=document.getElementById('permBody');if(!r.success||!r.data?.length){tb.innerHTML='<tr><td colspan="4" class="text-center">No permissions found</td></tr>';return}tb.innerHTML=r.data.map(p=>`<tr><td>${p.buName}</td><td><span class="badge ${p.status==='Active'?'bg-success':'bg-secondary'} rounded-pill">${p.status}</span></td><td><span class="badge bg-info rounded-pill">${roleNames[p.role]||p.role}</span></td><td><select class="form-select form-select-sm" style="width:auto;display:inline-block" onchange="updatePerm('${p.buId}',${p.permissionId},this.value)"><option value="O" ${p.role==='O'?'selected':''}>Owner</option><option value="C" ${p.role==='C'?'selected':''}>Champion</option><option value="V" ${p.role==='V'?'selected':''}>Viewer</option><option value="N" ${p.role==='N'?'selected':''}>None</option></select></td></tr>`).join('')})}
+function updatePerm(buId,permId,role){if(permId){apiCall('PUT',`/api/permission/update/${permId}`,{userId:targetUserId,buId,role}).then(r=>{showToast(r.message,r.success?'success':'danger');loadPerms()})}else{apiCall('POST','/api/permission/assign',{userId:targetUserId,buId,role}).then(r=>{showToast(r.message,r.success?'success':'danger');loadPerms()})}}
+document.addEventListener('DOMContentLoaded',loadPerms);
+</script>}

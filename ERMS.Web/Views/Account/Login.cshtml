@@ -1,0 +1,87 @@
+@model ERMS.Web.Models.LoginViewModel
+@{ Layout = null; }
+<!DOCTYPE html>
+<html lang="en" data-theme="light">
+<head>
+    <meta charset="utf-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Login - ERMS</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet"/>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet"/>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet"/>
+    <style>
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:'Inter',sans-serif;min-height:100vh;background:linear-gradient(135deg,#0D2B55 0%,#1A5276 40%,#2E86C1 100%);display:flex;align-items:center;justify-content:center;position:relative;overflow:hidden}
+        .wave{position:absolute;bottom:0;left:0;width:100%;height:200px;background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320'%3E%3Cpath fill='%23ffffff' fill-opacity='0.1' d='M0,96L48,112C96,128,192,160,288,186.7C384,213,480,235,576,213.3C672,192,768,128,864,117.3C960,107,1056,149,1152,154.7C1248,160,1344,128,1392,112L1440,96L1440,320L1392,320C1344,320,1248,320,1152,320C1056,320,960,320,864,320C768,320,672,320,576,320C480,320,384,320,288,320C192,320,96,320,48,320L0,320Z'%3E%3C/path%3E%3C/svg%3E") no-repeat bottom;background-size:cover;animation:wave 8s ease-in-out infinite alternate}
+        @@keyframes wave{0%{transform:translateY(0)}100%{transform:translateY(-20px)}}
+        .login-card{width:100%;max-width:420px;backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);background:rgba(255,255,255,0.12);border:1px solid rgba(255,255,255,0.2);border-radius:16px;padding:2.5rem;box-shadow:0 8px 32px rgba(0,0,0,0.3);z-index:1;color:#fff}
+        .login-card .logo{text-align:center;margin-bottom:1.5rem}
+        .login-card .logo img{width:48px;height:48px;margin-bottom:.5rem}
+        .login-card h2{text-align:center;font-weight:600;font-size:1.5rem;margin-bottom:.25rem}
+        .login-card .subtitle{text-align:center;font-size:.875rem;color:rgba(255,255,255,.7);margin-bottom:2rem}
+        .form-floating label{color:rgba(255,255,255,.6)!important}
+        .form-floating>.form-control{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2);color:#fff;border-radius:10px}
+        .form-floating>.form-control:focus{background:rgba(255,255,255,.15);border-color:rgba(255,255,255,.4);box-shadow:0 0 0 .2rem rgba(46,134,193,.3);color:#fff}
+        .form-floating>.form-control::placeholder{color:transparent}
+        .btn-login{width:100%;padding:.75rem;border-radius:50px;font-weight:600;font-size:1rem;background:linear-gradient(135deg,#2E86C1,#1A5276);border:none;color:#fff;transition:all .3s}
+        .btn-login:hover{transform:translateY(-2px);box-shadow:0 4px 20px rgba(46,134,193,.5);color:#fff}
+        .login-type-group .btn{background:rgba(255,255,255,.1);color:rgba(255,255,255,.7);border:1px solid rgba(255,255,255,.2);font-size:.85rem;padding:.4rem 1.2rem;border-radius:20px!important}
+        .login-type-group .btn.active,.login-type-group .btn:checked+.btn{background:rgba(46,134,193,.5);color:#fff;border-color:rgba(46,134,193,.7)}
+        .form-check-label{color:rgba(255,255,255,.7);font-size:.85rem}
+        .form-check-input{background-color:rgba(255,255,255,.2);border-color:rgba(255,255,255,.3)}
+        .eye-toggle{position:absolute;right:12px;top:50%;transform:translateY(-50%);background:none;border:none;color:rgba(255,255,255,.6);cursor:pointer;z-index:5}
+        .pwd-wrapper{position:relative}
+    </style>
+</head>
+<body>
+    <div class="wave"></div>
+    <div class="login-card">
+        <div class="logo">
+            <img src="/images/logo.svg" alt="ERMS"/>
+        </div>
+        <h2>Enterprise Risk Management</h2>
+        <p class="subtitle">Sign in to continue</p>
+
+        @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+        {
+            <div class="alert alert-danger alert-dismissible fade show" role="alert" style="background:rgba(192,57,43,.3);border:1px solid rgba(192,57,43,.5);color:#fff;border-radius:10px;font-size:.875rem">
+                @Model.ErrorMessage
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="alert"></button>
+            </div>
+        }
+
+        <form method="post" asp-controller="Account" asp-action="Login">
+            <div class="mb-3 text-center">
+                <div class="btn-group login-type-group" role="group">
+                    <input type="radio" class="btn-check" name="LoginType" id="ltCustom" value="Custom" @(Model.LoginType == "Custom" ? "checked" : "")/>
+                    <label class="btn" for="ltCustom">Custom</label>
+                    <input type="radio" class="btn-check" name="LoginType" id="ltLDAP" value="LDAP_TMG"/>
+                    <label class="btn" for="ltLDAP">LDAP</label>
+                </div>
+            </div>
+
+            <div class="form-floating mb-3">
+                <input type="text" class="form-control" id="username" name="Username" placeholder="Username" value="@Model.Username" required/>
+                <label for="username"><i class="bi bi-person me-1"></i>Username</label>
+            </div>
+
+            <div class="form-floating mb-3 pwd-wrapper">
+                <input type="password" class="form-control" id="password" name="Password" placeholder="Password" required/>
+                <label for="password"><i class="bi bi-lock me-1"></i>Password</label>
+                <button type="button" class="eye-toggle" onclick="togglePwd()"><i class="bi bi-eye" id="eyeIcon"></i></button>
+            </div>
+
+            <div class="form-check mb-4">
+                <input class="form-check-input" type="checkbox" id="remember" name="RememberMe" value="true"/>
+                <label class="form-check-label" for="remember">Remember me</label>
+            </div>
+
+            <button type="submit" class="btn btn-login">Sign In</button>
+        </form>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        function togglePwd(){var p=document.getElementById('password'),i=document.getElementById('eyeIcon');if(p.type==='password'){p.type='text';i.className='bi bi-eye-slash'}else{p.type='password';i.className='bi bi-eye'}}
+    </script>
+</body>
+</html>
