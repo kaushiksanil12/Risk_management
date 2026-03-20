@@ -1,0 +1,91 @@
+version: "3.8"
+
+services:
+  # ──────────────────────────────────────────────
+  # MariaDB Database
+  # ──────────────────────────────────────────────
+  db:
+    image: mariadb:10.11
+    container_name: erms_db
+    restart: unless-stopped
+    environment:
+      MARIADB_ROOT_PASSWORD: RootPass@123
+      MARIADB_DATABASE: risk_management_db
+      MARIADB_USER: riskadmin
+      MARIADB_PASSWORD: RiskAdmin@123
+    ports:
+      - "3307:3306"
+    volumes:
+      # Mount SQL files for init
+      - ./ERMS.Database/02_CreateTables.sql:/docker-entrypoint-initdb.d/sql/02_CreateTables.sql:ro
+      - ./ERMS.Database/03_CreateProcedures.sql:/docker-entrypoint-initdb.d/sql/03_CreateProcedures.sql:ro
+      - ./ERMS.Database/04_CreateTriggers.sql:/docker-entrypoint-initdb.d/sql/04_CreateTriggers.sql:ro
+      - ./ERMS.Database/05_SeedData.sql:/docker-entrypoint-initdb.d/sql/05_SeedData.sql:ro
+      - ./ERMS.Database/06_EmailProcedure.sql:/docker-entrypoint-initdb.d/sql/06_EmailProcedure.sql:ro
+      # Mount the init entrypoint script
+      - ./ERMS.Database/init-db.sh:/docker-entrypoint-initdb.d/init-db.sh:ro
+      # Persist data
+      - erms_db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 30s
+    networks:
+      - erms-net
+
+  # ──────────────────────────────────────────────
+  # ERMS API (Backend)
+  # ──────────────────────────────────────────────
+  api:
+    build:
+      context: .
+      dockerfile: Dockerfile.api
+    container_name: erms_api
+    restart: unless-stopped
+    ports:
+      - "5000:5000"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      # Override connection string to point to Docker service name
+      ConnectionStrings__DefaultConnection: "Server=db;Port=3306;Database=risk_management_db;Uid=riskadmin;Pwd=RiskAdmin@123;CharSet=utf8mb4;"
+      # CORS — allow the frontend
+      Cors__AllowedOrigins__0: "http://localhost:5002"
+      Cors__AllowedOrigins__1: "http://web:5002"
+      # WebBaseUrl for email links
+      WebBaseUrl: "http://localhost:5002"
+    depends_on:
+      db:
+        condition: service_healthy
+    networks:
+      - erms-net
+
+  # ──────────────────────────────────────────────
+  # ERMS Web (Frontend)
+  # ──────────────────────────────────────────────
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.web
+    container_name: erms_web
+    restart: unless-stopped
+    ports:
+      - "5002:5002"
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+      # Backend API URL for server-side calls (container-to-container)
+      ApiSettings__BaseUrl: "http://api:5000"
+      # Public API URL for browser JavaScript calls (host machine)
+      ApiSettings__PublicBaseUrl: "http://localhost:5000"
+    depends_on:
+      - api
+    networks:
+      - erms-net
+
+volumes:
+  erms_db_data:
+
+networks:
+  erms-net:
+    driver: bridge

@@ -6,7 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
     <title>@ViewData["Title"] - ERMS</title>
     <script>
-        window.API_BASE = 'http://localhost:5000';
+        window.API_BASE = '@(Configuration["ApiSettings:PublicBaseUrl"] ?? Configuration["ApiSettings:BaseUrl"] ?? "http://localhost:5000")';
         window.USER_ID = '@Context.Session.GetInt32("UserId")';
         window.ADMIN_FLAG = '@Context.Session.GetString("AdminFlag")';
         console.log('ERMS Init:', { API_BASE: window.API_BASE, USER_ID: window.USER_ID, ADMIN_FLAG: window.ADMIN_FLAG });

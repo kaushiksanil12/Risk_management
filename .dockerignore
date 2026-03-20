@@ -1,0 +1,12 @@
+**/bin/
+**/obj/
+**/Logs/
+**/.vs/
+**/.idea/
+**/.git/
+**/.gitignore
+**/Thumbs.db
+**/Desktop.ini
+**/.DS_Store
+*.md
+DatabaseTool/
