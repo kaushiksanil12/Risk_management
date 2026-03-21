@@ -38,12 +38,20 @@ namespace ERMS.API.Services.Implementations
 
         public async Task<ApiResponse<int>> CreateAsync(RiskRequest request, int createdBy)
         {
+            if (string.IsNullOrWhiteSpace(request.BUId))
+                return ApiResponse<int>.Fail("Business Unit is required.");
+            if (string.IsNullOrWhiteSpace(request.FYId))
+                return ApiResponse<int>.Fail("Fiscal Year is required.");
+            if (request.RiskCatId <= 0)
+                return ApiResponse<int>.Fail("Risk Category is required.");
+            if (request.RiskSubCatId <= 0)
+                return ApiResponse<int>.Fail("Risk Sub-Category is required. Please select a Category first, then select a Sub-Category.");
+            if (request.FunctionId <= 0)
+                return ApiResponse<int>.Fail("Function is required.");
             if (string.IsNullOrWhiteSpace(request.RiskTitle))
                 return ApiResponse<int>.Fail("Risk title is required.");
             if (string.IsNullOrWhiteSpace(request.Description) || request.Description.Length < 20)
                 return ApiResponse<int>.Fail("Description must be at least 20 characters.");
-            if (string.IsNullOrWhiteSpace(request.BUId))
-                return ApiResponse<int>.Fail("Business Unit is required.");
 
             var newId = await _riskRepo.InsertAsync(request, createdBy);
             await _riskRepo.InsertHistoryAsync(newId, null, ApiConstants.RiskStatuses.Draft, "Created", "", createdBy);
@@ -58,6 +66,12 @@ namespace ERMS.API.Services.Implementations
             if (existing.Status != ApiConstants.RiskStatuses.Draft && existing.Status != ApiConstants.RiskStatuses.RevisionRequired)
                 return ApiResponse<bool>.Fail("Risk can only be edited in Draft or Revision Required status.");
 
+            if (request.RiskCatId <= 0)
+                return ApiResponse<bool>.Fail("Risk Category is required.");
+            if (request.RiskSubCatId <= 0)
+                return ApiResponse<bool>.Fail("Risk Sub-Category is required.");
+            if (request.FunctionId <= 0)
+                return ApiResponse<bool>.Fail("Function is required.");
             if (string.IsNullOrWhiteSpace(request.RiskTitle))
                 return ApiResponse<bool>.Fail("Risk title is required.");
 
