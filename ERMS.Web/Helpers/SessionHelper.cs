@@ -1,3 +1,5 @@
+using System.Text.Json;
+using ERMS.Web.Models;
 using Newtonsoft.Json;
 
 namespace ERMS.Web.Helpers
@@ -37,16 +39,16 @@ namespace ERMS.Web.Helpers
 
         public static string GetRole(ISession session, string buId)
         {
-            var json = session.GetString(Permissions);
-            if (string.IsNullOrEmpty(json)) return "N";
+            var permissionsJson = session.GetString(Permissions);
+            if (string.IsNullOrEmpty(permissionsJson)) return "N";
 
-            var perms = JsonConvert.DeserializeObject<List<dynamic>>(json);
-            if (perms == null) return "N";
+            var permissions = System.Text.Json.JsonSerializer.Deserialize<List<UserPermissionResponse>>(permissionsJson);
+            if (permissions == null) return "N";
 
-            var perm = perms.FirstOrDefault(p => (string)p.buId == buId || (string)p.BUId == buId);
-            if (perm == null) return "N";
+            var match = permissions.FirstOrDefault(p =>
+                string.Equals(p.BUId, buId, StringComparison.OrdinalIgnoreCase));
 
-            return (string)(perm.role ?? perm.Role ?? "N");
+            return match?.Role ?? "N";
         }
 
         public static bool IsLoggedIn(ISession session)

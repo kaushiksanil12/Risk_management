@@ -52,6 +52,13 @@ namespace ERMS.API.Services.Implementations
             return ApiResponse<bool>.Ok(true, "Role updated successfully.");
         }
 
+        public async Task<string?> GetRoleAsync(int userId, string buId)
+        {
+            var perms = await _repo.GetByUserAsync(userId);
+            return perms.FirstOrDefault(p =>
+                string.Equals(p.BUId, buId, StringComparison.OrdinalIgnoreCase))?.Role;
+        }
+
         public async Task<ApiResponse<List<DropdownItem>>> GetFYDropdownAsync()
         {
             var items = await _repo.GetFYDropdownAsync();

@@ -53,10 +53,10 @@ namespace ERMS.Web.Controllers
 
             // Load permissions
             int userId = (int)userData.userId;
-            var permResult = await _api.GetAsync<dynamic>($"api/permission/byuser/{userId}");
-            if (permResult != null && (bool)(permResult.success ?? false))
+            var permResult = await _api.GetAsync<ApiResponse<List<UserPermissionResponse>>>($"api/permission/byuser/{userId}");
+            if (permResult != null && permResult.Success && permResult.Data != null)
             {
-                var permsJson = JsonConvert.SerializeObject(permResult.data);
+                var permsJson = System.Text.Json.JsonSerializer.Serialize(permResult.Data);
                 SessionHelper.SetPermissions(HttpContext.Session, permsJson);
             }
 

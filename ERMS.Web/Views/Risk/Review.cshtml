@@ -1,2 +1,113 @@
-@{ ViewData["Title"] = "Review Risk"; var riskId = ViewData["RiskId"]; }
-<script>window.location.href='/Risk/Detail/@riskId';</script>
+@model ERMS.Web.Models.RiskResponse
+@using ERMS.Web.Helpers
+@{
+    ViewData["Title"] = "Review Risk";
+    var userRole = SessionHelper.GetRole(Context.Session, Model.BUId);
+    bool isAdmin = ViewBag.IsAdmin ?? false;
+
+    if (userRole != "C" && !isAdmin)
+    {
+        // Redirect away — should have been caught in controller but double-check here
+        Context.Response.Redirect($"/Risk/Detail/{Model.RiskId}");
+        return;
+    }
+}
+
+<div class="mb-4">
+    <a href="/Risk/Detail/@Model.RiskId" class="btn btn-outline-secondary rounded-pill">
+        <i class="bi bi-arrow-left me-1"></i> Back to Detail
+    </a>
+</div>
+
+<div class="card shadow-sm border-0 mb-4">
+    <div class="card-header bg-white py-3">
+        <h5 class="mb-0">Review Risk #@Model.RiskId</h5>
+    </div>
+    <div class="card-body">
+        <div class="row mb-4">
+            <div class="col-md-12">
+                <h6>@Model.RiskTitle</h6>
+                <p class="text-muted">@Model.Description</p>
+            </div>
+        </div>
+
+        <form id="reviewForm">
+            <div class="mb-4">
+                <label class="form-label fw-bold">Action</label>
+                <div class="d-flex gap-3">
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="Action" id="actApprove" value="Approve" checked>
+                        <label class="form-check-label text-success fw-semibold" for="actApprove">
+                            <i class="bi bi-check-circle me-1"></i> Approve
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="Action" id="actSendBack" value="SendBack">
+                        <label class="form-check-label text-warning fw-semibold" for="actSendBack">
+                            <i class="bi bi-arrow-return-left me-1"></i> Send Back
+                        </label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="Action" id="actReject" value="Reject">
+                        <label class="form-check-label text-danger fw-semibold" for="actReject">
+                            <i class="bi bi-x-circle me-1"></i> Reject
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Review.cshtml — Remarks textarea -->
+            <div class="mb-3" id="remarksGroup">
+                <label class="form-label fw-semibold">
+                    Remarks <span class="text-danger" id="remarksRequired"></span>
+                </label>
+                <textarea id="Remarks" name="Remarks" class="form-control"
+                          rows="4" placeholder="Enter your remarks..."></textarea>
+            </div>
+
+            <button type="button" class="btn btn-primary rounded-pill px-4" onclick="submitReview()">
+                Submit Review
+            </button>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Logic from Fix 5
+        document.querySelectorAll('input[name="Action"]').forEach(radio => {
+            radio.addEventListener('change', function () {
+                const remarksRequired = document.getElementById('remarksRequired');
+                const remarksInput = document.getElementById('Remarks');
+
+                if (this.value === 'Reject' || this.value === 'SendBack') {
+                    remarksRequired.textContent = '*';
+                    remarksInput.required = true;
+                } else {
+                    remarksRequired.textContent = '';
+                    remarksInput.required = false;
+                }
+            });
+        });
+
+        function submitReview() {
+            const action = document.querySelector('input[name="Action"]:checked').value;
+            const remarks = document.getElementById('Remarks').value;
+
+            if ((action === 'Reject' || action === 'SendBack') && !remarks.trim()) {
+                showToast('Remarks are required for this action.', 'danger');
+                return;
+            }
+
+            apiCall('POST', `/api/risk/review/@Model.RiskId`, {
+                action: action,
+                remarks: remarks
+            }).then(r => {
+                showToast(r.message, r.success ? 'success' : 'danger');
+                if (r.success) {
+                    setTimeout(() => window.location.href = '/Risk/Detail/@Model.RiskId', 1500);
+                }
+            });
+        }
+    </script>
+}
