@@ -21,6 +21,11 @@ document.addEventListener('DOMContentLoaded', function() {
     if (localStorage.getItem('sidebarCollapsed') === 'true') {
         sidebar?.classList.add('collapsed');
     }
+
+    // Force all modals to body to completely prevent overlapping issues
+    document.querySelectorAll('.modal').forEach(function(m) {
+        document.body.appendChild(m);
+    });
 });
 
 // Global API caller
