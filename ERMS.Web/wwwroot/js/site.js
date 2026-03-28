@@ -101,31 +101,12 @@ function calculateScore(impactVal, likelihoodVal) {
 }
 
 function initQuarterRatingCalculation() {
-    ['GrossImpact', 'GrossLikelihood', 'ResidualImpact', 'ResidualLikelihood']
-        .forEach(id => {
-            const el = document.getElementById(id);
-            if (el) el.addEventListener('change', updateScores);
-        });
+    // Wired per-page in Create.cshtml — noop at global scope
 }
 
 function updateScores() {
-    const gi = document.getElementById('GrossImpact')?.value;
-    const gl = document.getElementById('GrossLikelihood')?.value;
-    if (gi && gl) {
-        const gs = calculateScore(gi, gl);
-        const gsEl = document.getElementById('GrossScore');
-        const grEl = document.getElementById('GrossRating');
-        if (gsEl) gsEl.value = gs;
-        if (grEl) grEl.value = calculateRating(gs);
-    }
-    const ri = document.getElementById('ResidualImpact')?.value;
-    const rl = document.getElementById('ResidualLikelihood')?.value;
-    if (ri && rl) {
-        const rs = calculateScore(ri, rl);
-        const rsEl = document.getElementById('ResidualScore');
-        const rrEl = document.getElementById('ResidualRating');
-        if (rsEl) rsEl.value = rs;
-        if (rrEl) rrEl.value = calculateRating(rs);
-    }
+    // Delegated to updateScoreCards() in Create.cshtml — noop at global scope
+    if (typeof updateScoreCards === 'function') updateScoreCards();
 }
+
 

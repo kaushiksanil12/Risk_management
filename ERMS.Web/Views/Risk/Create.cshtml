@@ -1,309 +1,690 @@
 @{ ViewData["Title"] = "Create New Risk"; }
 
-<div class="mb-4"><a href="/Risk/Index" class="btn btn-outline-secondary rounded-pill"><i class="bi bi-arrow-left me-1"></i>Back to Risks</a></div>
-
-<div class="card">
-    <div class="card-header d-flex justify-content-between align-items-center">
-        <h5 class="mb-0">New Risk Entry</h5>
-        <div class="d-flex gap-2" id="wizardStepIndicators">
-            <span class="badge rounded-pill bg-primary wizard-badge" data-step="1">1 Overview</span>
-            <span class="badge rounded-pill bg-secondary wizard-badge" data-step="2">2 People</span>
-            <span class="badge rounded-pill bg-secondary wizard-badge" data-step="3">3 Assessment</span>
-            <span class="badge rounded-pill bg-secondary wizard-badge" data-step="4">4 Rating</span>
-            <span class="badge rounded-pill bg-secondary wizard-badge" data-step="5">5 Attachments</span>
-        </div>
-    </div>
-    <div class="card-body">
-
-        <!-- Step 1 — Risk Overview -->
-        <div id="step-1" class="wizard-step">
-            <h5 class="mb-4">Risk Overview <small class="text-muted">Basic details</small></h5>
-            <div class="row g-3">
-                <div class="col-md-4"><label class="form-label fw-semibold">Business Unit</label><select class="form-select" id="fBU"></select></div>
-                <div class="col-md-4"><label class="form-label fw-semibold">Financial Year</label><select class="form-select" id="fFY"></select></div>
-                <div class="col-md-4"><label class="form-label fw-semibold">Risk Category</label><select class="form-select" id="fCat" onchange="loadSubCats()"></select></div>
-                <div class="col-md-4"><label class="form-label fw-semibold">Sub-Category</label><select class="form-select" id="fSubCat"></select></div>
-                <div class="col-md-4"><label class="form-label fw-semibold">Function</label><select class="form-select" id="fFunc"></select></div>
-                <div class="col-md-2"><label class="form-label fw-semibold">Impact Level</label><select class="form-select" id="fImpact"><option>High</option><option selected>Medium</option><option>Low</option></select></div>
-                <div class="col-md-2"><label class="form-label fw-semibold">Likelihood</label><select class="form-select" id="fLike"><option>High</option><option selected>Medium</option><option>Low</option></select></div>
-                <div class="col-12"><label class="form-label fw-semibold">Risk Title</label><input type="text" class="form-control" id="fTitle" maxlength="200"/></div>
-                <div class="col-12"><label class="form-label fw-semibold">Description <small class="text-muted">(min 20 characters)</small></label><textarea class="form-control" id="fDesc" rows="4"></textarea></div>
-            </div>
-        </div>
-
-        <!-- Step 2 — People Overview -->
-        <div id="step-2" class="wizard-step" style="display:none;">
-            <h5 class="mb-4">People Overview <small class="text-muted">Owners &amp; champions</small></h5>
-            <div class="row g-3">
-                <div class="col-md-6">
-                    <label class="form-label fw-semibold">Responsibility (Owner) <span class="text-danger">*</span></label>
-                    <select id="OwnerId" class="form-select" required>
-                        <option value="">-- Select Owner --</option>
-                    </select>
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label fw-semibold">Risk Champion <span class="text-danger">*</span></label>
-                    <select id="ChampionId" class="form-select" required>
-                        <option value="">-- Select Champion --</option>
-                    </select>
-                </div>
-            </div>
-        </div>
-
-        <!-- Step 3 — Risk Assessment -->
-        <div id="step-3" class="wizard-step" style="display:none;">
-            <h5 class="mb-4">Risk Assessment <small class="text-muted">Response measure &amp; line of action</small></h5>
-            <div class="row g-3">
-                <div class="col-md-6">
-                    <label class="form-label fw-semibold">Risk Response Measure</label>
-                    <textarea id="ResponseMeasure" class="form-control" rows="4"></textarea>
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label fw-semibold">Current Controls</label>
-                    <textarea id="CurrentControls" class="form-control" rows="4"></textarea>
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label fw-semibold">Identified Line of Action</label>
-                    <textarea id="LineOfAction" class="form-control" rows="4"></textarea>
-                </div>
-                <div class="col-md-6">
-                    <label class="form-label fw-semibold">Responsible Team</label>
-                    <select id="ResponsibleTeam" class="form-select">
-                        <option value="">-- Select --</option>
-                    </select>
-                </div>
-                <div class="col-md-4">
-                    <label class="form-label fw-semibold">Target Date</label>
-                    <input type="date" id="TargetDate" class="form-control" />
-                </div>
-                <div class="col-md-4">
-                    <label class="form-label fw-semibold">Frequency</label>
-                    <select id="FrequencyId" class="form-select">
-                        <option value="">-- Select --</option>
-                    </select>
-                </div>
-            </div>
-        </div>
-
-        <!-- Step 4 — Quarter Rating -->
-        <div id="step-4" class="wizard-step" style="display:none;">
-            <h5 class="mb-4">Quarter Rating <small class="text-muted">Gross &amp; residual scores</small></h5>
-            <div class="row g-3 mb-4">
-                <div class="col-md-3">
-                    <label class="form-label fw-semibold">Quarter <span class="text-danger">*</span></label>
-                    <select id="Quarter" class="form-select" required>
-                        <option value="">Select</option>
-                        <option value="Q1">Q1</option>
-                        <option value="Q2">Q2</option>
-                        <option value="Q3">Q3</option>
-                        <option value="Q4">Q4</option>
-                    </select>
-                </div>
-            </div>
-            <div class="row g-3 mb-3">
-                <div class="col-12"><h6 class="text-muted border-bottom pb-1">Gross Risk</h6></div>
-                <div class="col-md-3">
-                    <label class="form-label">Impact</label>
-                    <select id="GrossImpact" class="form-select">
-                        <option value="">Select</option>
-                        <option value="Low (1)">Low (1)</option>
-                        <option value="Low (2)">Low (2)</option>
-                        <option value="Moderate (3)">Moderate (3)</option>
-                        <option value="High (4)">High (4)</option>
-                        <option value="Critical (5)">Critical (5)</option>
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label">Likelihood</label>
-                    <select id="GrossLikelihood" class="form-select">
-                        <option value="">Select</option>
-                        <option value="Rare (1)">Rare (1)</option>
-                        <option value="Unlikely (2)">Unlikely (2)</option>
-                        <option value="Probable (3)">Probable (3)</option>
-                        <option value="Likely (4)">Likely (4)</option>
-                        <option value="Almost Certain (5)">Almost Certain (5)</option>
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label">Score</label>
-                    <input type="text" id="GrossScore" class="form-control bg-body-secondary" readonly placeholder="Auto-calculated" />
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label">Rating</label>
-                    <input type="text" id="GrossRating" class="form-control bg-body-secondary" readonly placeholder="Auto-calculated" />
-                </div>
-            </div>
-            <div class="row g-3">
-                <div class="col-12"><h6 class="text-muted border-bottom pb-1">Residual Risk (after controls)</h6></div>
-                <div class="col-md-3">
-                    <label class="form-label">Impact</label>
-                    <select id="ResidualImpact" class="form-select">
-                        <option value="">Select</option>
-                        <option value="Low (1)">Low (1)</option>
-                        <option value="Low (2)">Low (2)</option>
-                        <option value="Moderate (3)">Moderate (3)</option>
-                        <option value="High (4)">High (4)</option>
-                        <option value="Critical (5)">Critical (5)</option>
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label">Likelihood</label>
-                    <select id="ResidualLikelihood" class="form-select">
-                        <option value="">Select</option>
-                        <option value="Rare (1)">Rare (1)</option>
-                        <option value="Unlikely (2)">Unlikely (2)</option>
-                        <option value="Probable (3)">Probable (3)</option>
-                        <option value="Likely (4)">Likely (4)</option>
-                        <option value="Almost Certain (5)">Almost Certain (5)</option>
-                    </select>
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label">Score</label>
-                    <input type="text" id="ResidualScore" class="form-control bg-body-secondary" readonly placeholder="Auto-calculated" />
-                </div>
-                <div class="col-md-3">
-                    <label class="form-label">Rating</label>
-                    <input type="text" id="ResidualRating" class="form-control bg-body-secondary" readonly placeholder="Auto-calculated" />
-                </div>
-            </div>
-        </div>
-
-        <!-- Step 5 — Attachments -->
-        <div id="step-5" class="wizard-step" style="display:none;">
-            <h5 class="mb-4">Attachments <small class="text-muted">Upload supporting files</small></h5>
-            <div class="mb-3">
-                <label class="form-label fw-semibold">Upload File</label>
-                <input type="file" id="AttachmentFile" class="form-control"
-                       accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg" />
-                <div class="form-text">Allowed: PDF, Word, Excel, Images. Max size: 10 MB</div>
-            </div>
-            <button type="button" class="btn btn-outline-primary rounded-pill mb-4"
-                    onclick="uploadAttachment()">
-                <i class="bi bi-upload me-1"></i> Upload
-            </button>
-            <div id="attachmentsList"></div>
-        </div>
-
-        <!-- Wizard Navigation -->
-        <div class="d-flex justify-content-between mt-4 pt-3 border-top">
-            <button class="btn btn-outline-secondary rounded-pill" id="btnPrev"
-                    onclick="prevStep()" style="display:none;">
-                <i class="bi bi-arrow-left me-1"></i> Previous
-            </button>
-            <div class="ms-auto">
-                <button class="btn btn-primary rounded-pill" id="btnNext" onclick="nextStep()">
-                    Next <i class="bi bi-arrow-right ms-1"></i>
-                </button>
-                <button class="btn btn-success rounded-pill" id="btnFinish"
-                        onclick="finishWizard()" style="display:none;">
-                    <i class="bi bi-check-lg me-1"></i> Finish
-                </button>
-            </div>
-        </div>
-
-    </div>
+<div class="mb-3 d-flex align-items-center justify-content-between">
+    <a href="/Risk/Index" class="btn btn-outline-secondary rounded-pill btn-sm">
+        <i class="bi bi-arrow-left me-1"></i> Back to Risks
+    </a>
+    <span class="text-muted fw-semibold" style="font-size:13px;">New Risk Entry</span>
 </div>
+
+<!-- ── Outer card with glassmorphism ──────────────────────────────────────── -->
+<div class="card" style="border-radius:20px; overflow:visible;">
+
+    <!-- ── Step Progress Stepper ──────────────────────────────────────────── -->
+    <div class="wizard-progress">
+        <div class="wizard-steps">
+
+            <div class="wizard-step-item active" id="indicator-1">
+                <div class="wizard-step-circle">
+                    <span class="step-number">1</span>
+                    <span class="step-check">&#10003;</span>
+                </div>
+                <div class="wizard-step-label">
+                    <span class="step-title">Overview</span>
+                    <span class="step-sub">Basic details</span>
+                </div>
+            </div>
+
+            <div class="wizard-step-connector"></div>
+
+            <div class="wizard-step-item" id="indicator-2">
+                <div class="wizard-step-circle">
+                    <span class="step-number">2</span>
+                    <span class="step-check">&#10003;</span>
+                </div>
+                <div class="wizard-step-label">
+                    <span class="step-title">People</span>
+                    <span class="step-sub">Owners &amp; champions</span>
+                </div>
+            </div>
+
+            <div class="wizard-step-connector"></div>
+
+            <div class="wizard-step-item" id="indicator-3">
+                <div class="wizard-step-circle">
+                    <span class="step-number">3</span>
+                    <span class="step-check">&#10003;</span>
+                </div>
+                <div class="wizard-step-label">
+                    <span class="step-title">Assessment</span>
+                    <span class="step-sub">Response &amp; controls</span>
+                </div>
+            </div>
+
+            <div class="wizard-step-connector"></div>
+
+            <div class="wizard-step-item" id="indicator-4">
+                <div class="wizard-step-circle">
+                    <span class="step-number">4</span>
+                    <span class="step-check">&#10003;</span>
+                </div>
+                <div class="wizard-step-label">
+                    <span class="step-title">Rating</span>
+                    <span class="step-sub">Gross &amp; residual</span>
+                </div>
+            </div>
+
+            <div class="wizard-step-connector"></div>
+
+            <div class="wizard-step-item" id="indicator-5">
+                <div class="wizard-step-circle">
+                    <span class="step-number">5</span>
+                    <span class="step-check">&#10003;</span>
+                </div>
+                <div class="wizard-step-label">
+                    <span class="step-title">Attachments</span>
+                    <span class="step-sub">Upload files</span>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+    <!-- ── Step Panels ────────────────────────────────────────────────────── -->
+    <div class="p-3">
+
+        <!-- ============================================================
+             STEP 1 — Risk Overview
+        ============================================================ -->
+        <div id="step-1" class="wizard-step-panel active">
+            <div class="step-panel-header">
+                <div class="step-panel-icon"><i class="bi bi-file-earmark-text"></i></div>
+                <div>
+                    <h5 class="step-panel-title">Risk Overview</h5>
+                    <p class="step-panel-sub">Fill in the basic details of the risk.</p>
+                </div>
+            </div>
+            <div class="step-panel-body">
+
+                <div class="fields-row cols-3" style="margin-bottom:20px;">
+                    <div class="form-field-group">
+                        <label class="field-label">Business Unit <span class="text-danger">*</span></label>
+                        <div class="field-input-wrapper">
+                            <i class="bi bi-building field-icon"></i>
+                            <select id="BUId" class="form-select field-input" required>
+                                <option value="">Select...</option>
+                            </select>
+                        </div>
+                        <span class="field-error">Please select a Business Unit.</span>
+                    </div>
+                    <div class="form-field-group">
+                        <label class="field-label">Financial Year <span class="text-danger">*</span></label>
+                        <div class="field-input-wrapper">
+                            <i class="bi bi-calendar3 field-icon"></i>
+                            <select id="FYId" class="form-select field-input" required>
+                                <option value="">Select...</option>
+                            </select>
+                        </div>
+                        <span class="field-error">Please select a Financial Year.</span>
+                    </div>
+                    <div class="form-field-group">
+                        <label class="field-label">Risk Category <span class="text-danger">*</span></label>
+                        <div class="field-input-wrapper">
+                            <i class="bi bi-tag field-icon"></i>
+                            <select id="RiskCatId" class="form-select field-input" required>
+                                <option value="">Select...</option>
+                            </select>
+                        </div>
+                        <span class="field-error">Please select a Risk Category.</span>
+                    </div>
+                </div>
+
+                <div class="fields-row cols-2" style="margin-bottom:20px;">
+                    <div class="form-field-group">
+                        <label class="field-label">Sub-Category <span class="text-danger">*</span></label>
+                        <div class="field-input-wrapper">
+                            <i class="bi bi-tags field-icon"></i>
+                            <select id="RiskSubCatId" class="form-select field-input" required disabled>
+                                <option value="">Select Category first...</option>
+                            </select>
+                        </div>
+                        <span class="field-help">Select a Risk Category above to load sub-categories.</span>
+                        <span class="field-error">Please select a Sub-Category.</span>
+                    </div>
+                    <div class="form-field-group">
+                        <label class="field-label">Function <span class="text-danger">*</span></label>
+                        <div class="field-input-wrapper">
+                            <i class="bi bi-diagram-3 field-icon"></i>
+                            <select id="FunctionId" class="form-select field-input" required>
+                                <option value="">Select...</option>
+                            </select>
+                        </div>
+                        <span class="field-error">Please select a Function.</span>
+                    </div>
+                </div>
+
+                <div class="fields-row cols-2" style="margin-bottom:20px;">
+                    <div class="form-field-group">
+                        <label class="field-label">Impact Level <span class="text-danger">*</span></label>
+                        <div class="field-input-wrapper">
+                            <i class="bi bi-exclamation-triangle field-icon"></i>
+                            <select id="ImpactLevel" class="form-select field-input" required>
+                                <option value="">Select...</option>
+                                <option value="Low">Low</option>
+                                <option value="Medium" selected>Medium</option>
+                                <option value="High">High</option>
+                            </select>
+                        </div>
+                        <span class="field-error">Please select an Impact Level.</span>
+                    </div>
+                    <div class="form-field-group">
+                        <label class="field-label">Likelihood <span class="text-danger">*</span></label>
+                        <div class="field-input-wrapper">
+                            <i class="bi bi-bar-chart field-icon"></i>
+                            <select id="Likelihood" class="form-select field-input" required>
+                                <option value="">Select...</option>
+                                <option value="Low">Low</option>
+                                <option value="Medium" selected>Medium</option>
+                                <option value="High">High</option>
+                            </select>
+                        </div>
+                        <span class="field-error">Please select a Likelihood.</span>
+                    </div>
+                </div>
+
+                <div class="form-field-group">
+                    <label class="field-label">Risk Title <span class="text-danger">*</span></label>
+                    <div class="field-input-wrapper">
+                        <i class="bi bi-pencil field-icon"></i>
+                        <input type="text" id="RiskTitle" class="form-control field-input"
+                               placeholder="Enter a clear, concise risk title..."
+                               maxlength="300" required />
+                    </div>
+                    <span class="field-help" id="titleCharCount">0 / 300 characters</span>
+                    <span class="field-error">Risk Title is required.</span>
+                </div>
+
+                <div class="form-field-group" style="margin-bottom:0;">
+                    <label class="field-label">Description <span class="text-danger">*</span>
+                        <span class="text-muted fw-normal ms-1">(min 20 characters)</span>
+                    </label>
+                    <div class="field-input-wrapper">
+                        <i class="bi bi-text-paragraph field-icon top-align"></i>
+                        <textarea id="Description" class="form-control field-input"
+                                  rows="4"
+                                  placeholder="Describe the risk in detail..."
+                                  minlength="20" required></textarea>
+                    </div>
+                    <span class="field-help" id="descCharCount">0 characters (minimum 20)</span>
+                    <span class="field-error">Description must be at least 20 characters.</span>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- ============================================================
+             STEP 2 — People Overview
+        ============================================================ -->
+        <div id="step-2" class="wizard-step-panel">
+            <div class="step-panel-header">
+                <div class="step-panel-icon"><i class="bi bi-people"></i></div>
+                <div>
+                    <h5 class="step-panel-title">People Overview</h5>
+                    <p class="step-panel-sub">Assign the risk owner and champion.</p>
+                </div>
+            </div>
+            <div class="step-panel-body">
+                <div class="fields-row cols-2">
+                    <div class="form-field-group">
+                        <label class="field-label">Responsibility (Owner) <span class="text-danger">*</span></label>
+                        <div class="people-card mb-2">
+                            <div class="people-card-avatar"><i class="bi bi-person"></i></div>
+                            <small class="text-muted mb-2 d-block">Select from the dropdown below</small>
+                        </div>
+                        <div class="field-input-wrapper">
+                            <i class="bi bi-person-check field-icon"></i>
+                            <select id="OwnerId" class="form-select field-input" required>
+                                <option value="">-- Select Owner --</option>
+                            </select>
+                        </div>
+                        <span class="field-error">Please select a Risk Owner.</span>
+                    </div>
+                    <div class="form-field-group">
+                        <label class="field-label">Risk Champion <span class="text-danger">*</span></label>
+                        <div class="people-card mb-2">
+                            <div class="people-card-avatar"><i class="bi bi-person-badge"></i></div>
+                            <small class="text-muted mb-2 d-block">Select from the dropdown below</small>
+                        </div>
+                        <div class="field-input-wrapper">
+                            <i class="bi bi-person-badge field-icon"></i>
+                            <select id="ChampionId" class="form-select field-input" required>
+                                <option value="">-- Select Champion --</option>
+                            </select>
+                        </div>
+                        <span class="field-error">Please select a Risk Champion.</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================================
+             STEP 3 — Risk Assessment
+        ============================================================ -->
+        <div id="step-3" class="wizard-step-panel">
+            <div class="step-panel-header">
+                <div class="step-panel-icon"><i class="bi bi-clipboard-check"></i></div>
+                <div>
+                    <h5 class="step-panel-title">Risk Assessment</h5>
+                    <p class="step-panel-sub">Document response measures and current controls.</p>
+                </div>
+            </div>
+            <div class="step-panel-body">
+                <div class="fields-row cols-2" style="margin-bottom:20px;">
+                    <div class="form-field-group">
+                        <label class="field-label">Risk Response Measure</label>
+                        <div class="field-input-wrapper">
+                            <i class="bi bi-shield-check field-icon top-align"></i>
+                            <textarea id="ResponseMeasure" class="form-control field-input"
+                                      rows="4" placeholder="Describe the response measure..."></textarea>
+                        </div>
+                    </div>
+                    <div class="form-field-group">
+                        <label class="field-label">Current Controls</label>
+                        <div class="field-input-wrapper">
+                            <i class="bi bi-toggles field-icon top-align"></i>
+                            <textarea id="CurrentControls" class="form-control field-input"
+                                      rows="4" placeholder="List existing controls..."></textarea>
+                        </div>
+                    </div>
+                </div>
+                <div class="form-field-group">
+                    <label class="field-label">Identified Line of Action</label>
+                    <div class="field-input-wrapper">
+                        <i class="bi bi-lightning field-icon top-align"></i>
+                        <textarea id="LineOfAction" class="form-control field-input"
+                                  rows="3" placeholder="Describe the action plan..."></textarea>
+                    </div>
+                </div>
+                <div class="fields-row cols-3" style="margin-bottom:0;">
+                    <div class="form-field-group">
+                        <label class="field-label">Responsible Team</label>
+                        <div class="field-input-wrapper">
+                            <i class="bi bi-diagram-3 field-icon"></i>
+                            <select id="ResponsibleTeam" class="form-select field-input">
+                                <option value="">-- Select --</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-field-group">
+                        <label class="field-label">Target Date</label>
+                        <div class="field-input-wrapper">
+                            <i class="bi bi-calendar-event field-icon"></i>
+                            <input type="date" id="TargetDate" class="form-control field-input" />
+                        </div>
+                    </div>
+                    <div class="form-field-group">
+                        <label class="field-label">Review Frequency</label>
+                        <div class="field-input-wrapper">
+                            <i class="bi bi-arrow-repeat field-icon"></i>
+                            <select id="FrequencyId" class="form-select field-input">
+                                <option value="">-- Select --</option>
+                                <option value="MNT">Monthly</option>
+                                <option value="QTR">Quarterly</option>
+                                <option value="HLY">Half-Yearly</option>
+                                <option value="YER">Yearly</option>
+                            </select>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ============================================================
+             STEP 4 — Quarter Rating
+        ============================================================ -->
+        <div id="step-4" class="wizard-step-panel">
+            <div class="step-panel-header">
+                <div class="step-panel-icon"><i class="bi bi-bar-chart-line"></i></div>
+                <div>
+                    <h5 class="step-panel-title">Quarter Rating</h5>
+                    <p class="step-panel-sub">Enter gross and residual risk scores for the quarter.</p>
+                </div>
+            </div>
+            <div class="step-panel-body">
+
+                <div class="form-field-group" style="max-width:200px; margin-bottom:24px;">
+                    <label class="field-label">Quarter <span class="text-danger">*</span></label>
+                    <div class="field-input-wrapper">
+                        <i class="bi bi-calendar2-week field-icon"></i>
+                        <select id="Quarter" class="form-select field-input" required>
+                            <option value="">Select</option>
+                            <option value="Q1">Q1</option>
+                            <option value="Q2">Q2</option>
+                            <option value="Q3">Q3</option>
+                            <option value="Q4">Q4</option>
+                        </select>
+                    </div>
+                    <span class="field-error">Please select a Quarter.</span>
+                </div>
+
+                <!-- Gross Risk -->
+                <div class="risk-rating-section">
+                    <div class="risk-rating-section-title"><i class="bi bi-graph-up-arrow me-2"></i>Gross Risk</div>
+                    <div class="fields-row cols-2" style="margin-bottom:16px;">
+                        <div class="form-field-group" style="margin-bottom:0;">
+                            <label class="field-label">Impact</label>
+                            <div class="field-input-wrapper">
+                                <i class="bi bi-exclamation-circle field-icon"></i>
+                                <select id="GrossImpact" class="form-select field-input">
+                                    <option value="">Select...</option>
+                                    <option value="Low (1)">Low (1)</option>
+                                    <option value="Low (2)">Low (2)</option>
+                                    <option value="Moderate (3)">Moderate (3)</option>
+                                    <option value="High (4)">High (4)</option>
+                                    <option value="Critical (5)">Critical (5)</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-field-group" style="margin-bottom:0;">
+                            <label class="field-label">Likelihood</label>
+                            <div class="field-input-wrapper">
+                                <i class="bi bi-percent field-icon"></i>
+                                <select id="GrossLikelihood" class="form-select field-input">
+                                    <option value="">Select...</option>
+                                    <option value="Rare (1)">Rare (1)</option>
+                                    <option value="Unlikely (2)">Unlikely (2)</option>
+                                    <option value="Probable (3)">Probable (3)</option>
+                                    <option value="Likely (4)">Likely (4)</option>
+                                    <option value="Almost Certain (5)">Almost Certain (5)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="score-display-area" id="grossScoreArea" style="display:none;">
+                        <div class="score-card" id="grossScoreCard">
+                            <div class="score-card-inner">
+                                <div class="score-number" id="GrossScoreDisplay">0</div>
+                                <div class="score-label" id="GrossRatingDisplay">—</div>
+                                <div class="score-type">Gross Score</div>
+                            </div>
+                        </div>
+                    </div>
+                    <input type="hidden" id="GrossScore" />
+                    <input type="hidden" id="GrossRating" />
+                </div>
+
+                <!-- Residual Risk -->
+                <div class="risk-rating-section" style="margin-bottom:0;">
+                    <div class="risk-rating-section-title"><i class="bi bi-graph-down-arrow me-2"></i>Residual Risk (after controls)</div>
+                    <div class="fields-row cols-2" style="margin-bottom:16px;">
+                        <div class="form-field-group" style="margin-bottom:0;">
+                            <label class="field-label">Impact</label>
+                            <div class="field-input-wrapper">
+                                <i class="bi bi-exclamation-circle field-icon"></i>
+                                <select id="ResidualImpact" class="form-select field-input">
+                                    <option value="">Select...</option>
+                                    <option value="Low (1)">Low (1)</option>
+                                    <option value="Low (2)">Low (2)</option>
+                                    <option value="Moderate (3)">Moderate (3)</option>
+                                    <option value="High (4)">High (4)</option>
+                                    <option value="Critical (5)">Critical (5)</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class="form-field-group" style="margin-bottom:0;">
+                            <label class="field-label">Likelihood</label>
+                            <div class="field-input-wrapper">
+                                <i class="bi bi-percent field-icon"></i>
+                                <select id="ResidualLikelihood" class="form-select field-input">
+                                    <option value="">Select...</option>
+                                    <option value="Rare (1)">Rare (1)</option>
+                                    <option value="Unlikely (2)">Unlikely (2)</option>
+                                    <option value="Probable (3)">Probable (3)</option>
+                                    <option value="Likely (4)">Likely (4)</option>
+                                    <option value="Almost Certain (5)">Almost Certain (5)</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="score-display-area" id="residualScoreArea" style="display:none;">
+                        <div class="score-card" id="residualScoreCard">
+                            <div class="score-card-inner">
+                                <div class="score-number" id="ResidualScoreDisplay">0</div>
+                                <div class="score-label" id="ResidualRatingDisplay">—</div>
+                                <div class="score-type">Residual Score</div>
+                            </div>
+                        </div>
+                    </div>
+                    <input type="hidden" id="ResidualScore" />
+                    <input type="hidden" id="ResidualRating" />
+                </div>
+
+            </div>
+        </div>
+
+        <!-- ============================================================
+             STEP 5 — Attachments
+        ============================================================ -->
+        <div id="step-5" class="wizard-step-panel">
+            <div class="step-panel-header">
+                <div class="step-panel-icon"><i class="bi bi-paperclip"></i></div>
+                <div>
+                    <h5 class="step-panel-title">Attachments</h5>
+                    <p class="step-panel-sub">Upload supporting files for this risk.</p>
+                </div>
+            </div>
+            <div class="step-panel-body">
+
+                <div class="attach-dropzone" id="dropZone"
+                     onclick="document.getElementById('AttachmentFile').click()">
+                    <i class="bi bi-cloud-upload"></i>
+                    <p>Click to select a file, or drag &amp; drop here</p>
+                    <small>PDF, Word, Excel, Images — max 10 MB</small>
+                </div>
+
+                <input type="file" id="AttachmentFile" style="display:none;"
+                       accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg"
+                       onchange="uploadAttachment()" />
+
+                <div id="uploadStatus" class="mb-3" style="display:none;">
+                    <span class="spinner-border spinner-border-sm me-2"></span>
+                    <span id="uploadStatusText">Uploading...</span>
+                </div>
+
+                <div id="attachmentsList"></div>
+
+            </div>
+        </div>
+
+    </div><!-- /p-3 -->
+
+    <!-- ── Sticky Nav Footer ──────────────────────────────────────────────── -->
+    <div class="wizard-nav-footer">
+        <button type="button"
+                class="btn btn-outline-secondary rounded-pill px-4"
+                id="btn-prev-global"
+                onclick="prevStep()"
+                style="display:none;">
+            <i class="bi bi-arrow-left me-2"></i> Previous
+        </button>
+
+        <span class="wizard-step-counter" id="stepCounter">Step 1 of 5</span>
+
+        <button type="button"
+                class="btn btn-primary rounded-pill px-5"
+                id="btn-next-global"
+                onclick="nextStep()">
+            Next <i class="bi bi-arrow-right ms-2"></i>
+        </button>
+    </div>
+
+</div><!-- /card -->
 
 @section scripts {
 <script>
-// ── Wizard State ──────────────────────────────────────────────────────────
-let currentStep  = 1;
-const totalSteps = 5;
-let currentRiskId = null;
+/* ══════════════════════════════════════════════════════════════════════════
+   WIZARD STATE
+══════════════════════════════════════════════════════════════════════════ */
+let currentStep    = 1;
+const totalSteps   = 5;
+let currentRiskId  = null;
+const completedSteps = [];
 
+/* ── Step navigation ────────────────────────────────────────────────────── */
 function showStep(step) {
-    for (let i = 1; i <= totalSteps; i++) {
-        const el = document.getElementById(`step-${i}`);
-        if (el) el.style.display = (i === step) ? 'block' : 'none';
-    }
+    document.querySelectorAll('.wizard-step-panel').forEach(p => p.classList.remove('active'));
+    const panel = document.getElementById(`step-${step}`);
+    if (panel) panel.classList.add('active');
     currentStep = step;
-
-    document.getElementById('btnPrev').style.display   = step > 1 ? 'inline-block' : 'none';
-    document.getElementById('btnNext').style.display   = step < totalSteps ? 'inline-block' : 'none';
-    document.getElementById('btnFinish').style.display = step === totalSteps ? 'inline-block' : 'none';
-
-    // Update badge colours
-    document.querySelectorAll('.wizard-badge').forEach(b => {
-        const s = parseInt(b.dataset.step);
-        b.className = `badge rounded-pill wizard-badge ${s < step ? 'bg-success' : s === step ? 'bg-primary' : 'bg-secondary'}`;
-    });
+    updateStepIndicators(step, completedSteps);
+    updateNavFooter(step);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
+function updateStepIndicators(activeStep, done = []) {
+    for (let i = 1; i <= 5; i++) {
+        const indicator = document.getElementById(`indicator-${i}`);
+        if (!indicator) continue;
+        indicator.classList.remove('active', 'completed');
+
+        const connector = indicator.nextElementSibling;
+        if (connector?.classList.contains('wizard-step-connector'))
+            connector.classList.remove('completed');
+
+        if (done.includes(i)) {
+            indicator.classList.add('completed');
+            if (connector?.classList.contains('wizard-step-connector'))
+                connector.classList.add('completed');
+        } else if (i === activeStep) {
+            indicator.classList.add('active');
+        }
+    }
+}
+
+function markStepCompleted(step) {
+    if (!completedSteps.includes(step)) completedSteps.push(step);
+}
+
+function updateNavFooter(step) {
+    const prevBtn = document.getElementById('btn-prev-global');
+    const nextBtn = document.getElementById('btn-next-global');
+    const counter = document.getElementById('stepCounter');
+    if (prevBtn) prevBtn.style.display = step > 1 ? 'inline-flex' : 'none';
+    if (counter) counter.textContent  = `Step ${step} of 5`;
+    if (nextBtn) {
+        if (step === 5) {
+            nextBtn.innerHTML = '<i class="bi bi-check-circle me-2"></i> Finish';
+            nextBtn.classList.remove('btn-primary');
+            nextBtn.classList.add('btn-success');
+        } else {
+            nextBtn.innerHTML = 'Next <i class="bi bi-arrow-right ms-2"></i>';
+            nextBtn.classList.remove('btn-success');
+            nextBtn.classList.add('btn-primary');
+        }
+    }
+}
+
+/* ── Next with validation, loading state, scroll-to-top ─────────────────── */
 async function nextStep() {
-    const saved = await saveCurrentStep();
-    if (saved && currentStep < totalSteps) showStep(currentStep + 1);
+    if (currentStep === 5) {
+        window.location.href = currentRiskId ? `/Risk/Detail/${currentRiskId}` : '/Risk/Index';
+        return;
+    }
+    if (!validateStep(currentStep)) return;
+
+    const btn = document.getElementById('btn-next-global');
+    const prev = btn.innerHTML;
+    btn.disabled  = true;
+    btn.innerHTML = '<span class="spinner-border spinner-border-sm me-2"></span> Saving...';
+
+    try {
+        const saved = await saveCurrentStep();
+        if (saved) {
+            markStepCompleted(currentStep);
+            showStep(currentStep + 1);
+        }
+    } finally {
+        btn.disabled  = false;
+        btn.innerHTML = prev;
+        // Re-apply finish style if we ended on step 5
+        updateNavFooter(currentStep);
+    }
 }
 
 function prevStep() {
     if (currentStep > 1) showStep(currentStep - 1);
 }
 
-async function finishWizard() {
-    if (currentStep === totalSteps) {
-        window.location.href = currentRiskId ? `/Risk/Detail/${currentRiskId}` : '/Risk/Index';
+/* ── Validation ─────────────────────────────────────────────────────────── */
+function validateStep(step) {
+    let valid = true;
+    const panel = document.getElementById(`step-${step}`);
+    if (!panel) return true;
+
+    panel.querySelectorAll('[required]').forEach(field => {
+        const isEmpty = !field.value || field.value.trim() === '';
+        field.classList.toggle('is-invalid', isEmpty);
+        field.classList.toggle('is-valid',   !isEmpty);
+        if (isEmpty) valid = false;
+    });
+
+    if (step === 1) {
+        const desc = document.getElementById('Description');
+        if (desc && desc.value.length < 20) {
+            desc.classList.add('is-invalid');
+            desc.classList.remove('is-valid');
+            valid = false;
+        }
     }
+
+    if (!valid) {
+        showToast('Please fill in all required fields before proceeding.', 'danger');
+        const first = panel.querySelector('.is-invalid');
+        first?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }
+    return valid;
 }
 
-// ── Step Savers ───────────────────────────────────────────────────────────
-
+/* ── Step Savers ─────────────────────────────────────────────────────────── */
 async function saveCurrentStep() {
     if (currentStep === 1) return await saveStep1();
     if (currentStep === 2) return await saveStep2();
     if (currentStep === 3) return await saveStep3();
     if (currentStep === 4) return await saveStep4();
-    return true; // Step 5 saves on upload
+    return true;
 }
 
 async function saveStep1() {
     const body = {
-        buId:         document.getElementById('fBU').value,
-        fyId:         document.getElementById('fFY').value,
-        riskCatId:    parseInt(document.getElementById('fCat').value) || 0,
-        riskSubCatId: parseInt(document.getElementById('fSubCat').value) || 0,
-        functionId:   parseInt(document.getElementById('fFunc').value) || 0,
-        riskTitle:    document.getElementById('fTitle').value,
-        description:  document.getElementById('fDesc').value,
-        impactLevel:  document.getElementById('fImpact').value,
-        likelihood:   document.getElementById('fLike').value
+        buId:         document.getElementById('BUId').value,
+        fyId:         document.getElementById('FYId').value,
+        riskCatId:    parseInt(document.getElementById('RiskCatId').value) || 0,
+        riskSubCatId: parseInt(document.getElementById('RiskSubCatId').value) || 0,
+        functionId:   parseInt(document.getElementById('FunctionId').value) || 0,
+        riskTitle:    document.getElementById('RiskTitle').value.trim(),
+        description:  document.getElementById('Description').value.trim(),
+        impactLevel:  document.getElementById('ImpactLevel').value,
+        likelihood:   document.getElementById('Likelihood').value
     };
-    if (!body.riskTitle) { showToast('Risk Title is required.', 'danger'); return false; }
-    if (body.description.length < 20) { showToast('Description must be at least 20 characters.', 'danger'); return false; }
-
     const r = await apiCall('POST', '/api/risk/create', body);
-    if (r && r.success) {
-        currentRiskId = r.data;
-        return true;
-    }
-    showToast((r && r.message) || 'Failed to save Risk Overview.', 'danger');
+    if (r?.success) { currentRiskId = r.data; return true; }
+    showToast(r?.message || 'Failed to save Risk Overview.', 'danger');
     return false;
 }
 
 async function saveStep2() {
     if (!currentRiskId) { showToast('Please complete Step 1 first.', 'danger'); return false; }
-    const ownerId    = parseInt(document.getElementById('OwnerId').value);
-    const championId = parseInt(document.getElementById('ChampionId').value);
-    if (!ownerId)    { showToast('Please select a Risk Owner.', 'danger'); return false; }
-    if (!championId) { showToast('Please select a Risk Champion.', 'danger'); return false; }
-
-    const r = await apiCall('POST', `/api/risk/${currentRiskId}/people`, { OwnerId: ownerId, ChampionId: championId });
-    if (r && r.success) return true;
-    showToast((r && r.message) || 'Failed to save People Overview.', 'danger');
+    const r = await apiCall('POST', `/api/risk/${currentRiskId}/people`, {
+        OwnerId:    parseInt(document.getElementById('OwnerId').value),
+        ChampionId: parseInt(document.getElementById('ChampionId').value)
+    });
+    if (r?.success) return true;
+    showToast(r?.message || 'Failed to save People Overview.', 'danger');
     return false;
 }
 
 async function saveStep3() {
     if (!currentRiskId) return false;
-    const body = {
+    const r = await apiCall('POST', `/api/risk/${currentRiskId}/assessment`, {
         ResponseMeasure: document.getElementById('ResponseMeasure').value,
         CurrentControls: document.getElementById('CurrentControls').value,
         LineOfAction:    document.getElementById('LineOfAction').value,
         ResponsibleTeam: document.getElementById('ResponsibleTeam').value,
         TargetDate:      document.getElementById('TargetDate').value,
         FrequencyId:     document.getElementById('FrequencyId').value
-    };
-    const r = await apiCall('POST', `/api/risk/${currentRiskId}/assessment`, body);
-    if (r && r.success) return true;
-    showToast((r && r.message) || 'Failed to save Assessment.', 'danger');
+    });
+    if (r?.success) return true;
+    showToast(r?.message || 'Failed to save Assessment.', 'danger');
     return false;
 }
 
@@ -311,7 +692,7 @@ async function saveStep4() {
     if (!currentRiskId) return false;
     const quarter = document.getElementById('Quarter').value;
     if (!quarter) { showToast('Please select a Quarter.', 'danger'); return false; }
-    const body = {
+    const r = await apiCall('POST', `/api/risk/${currentRiskId}/quarterrating`, {
         Quarter:            quarter,
         GrossImpact:        document.getElementById('GrossImpact').value,
         GrossLikelihood:    document.getElementById('GrossLikelihood').value,
@@ -321,36 +702,81 @@ async function saveStep4() {
         ResidualLikelihood: document.getElementById('ResidualLikelihood').value,
         ResidualScore:      parseInt(document.getElementById('ResidualScore').value) || 0,
         ResidualRating:     document.getElementById('ResidualRating').value
-    };
-    const r = await apiCall('POST', `/api/risk/${currentRiskId}/quarterrating`, body);
-    if (r && r.success) return true;
-    showToast((r && r.message) || 'Failed to save Quarter Rating.', 'danger');
+    });
+    if (r?.success) return true;
+    showToast(r?.message || 'Failed to save Quarter Rating.', 'danger');
     return false;
 }
 
-// ── Attachments ───────────────────────────────────────────────────────────
+/* ── Score Cards ─────────────────────────────────────────────────────────── */
+function getRatingClass(rating) {
+    if (!rating) return '';
+    const r = rating.toLowerCase();
+    if (r === 'low')         return 'rating-low';
+    if (r === 'medium low')  return 'rating-medium-low';
+    if (r === 'medium')      return 'rating-medium';
+    if (r === 'medium high') return 'rating-medium-high';
+    return 'rating-high';
+}
 
+function updateScoreCards() {
+    const gi = document.getElementById('GrossImpact')?.value;
+    const gl = document.getElementById('GrossLikelihood')?.value;
+    if (gi && gl) {
+        const gs = calculateScore(gi, gl);
+        const gr = calculateRating(gs);
+        document.getElementById('GrossScore').value           = gs;
+        document.getElementById('GrossRating').value          = gr;
+        document.getElementById('GrossScoreDisplay').textContent  = gs;
+        document.getElementById('GrossRatingDisplay').textContent = gr;
+        const area = document.getElementById('grossScoreArea');
+        const card = document.getElementById('grossScoreCard');
+        area.style.display = '';
+        card.className = 'score-card ' + getRatingClass(gr);
+    }
+    const ri = document.getElementById('ResidualImpact')?.value;
+    const rl = document.getElementById('ResidualLikelihood')?.value;
+    if (ri && rl) {
+        const rs = calculateScore(ri, rl);
+        const rr = calculateRating(rs);
+        document.getElementById('ResidualScore').value               = rs;
+        document.getElementById('ResidualRating').value              = rr;
+        document.getElementById('ResidualScoreDisplay').textContent  = rs;
+        document.getElementById('ResidualRatingDisplay').textContent = rr;
+        const area = document.getElementById('residualScoreArea');
+        const card = document.getElementById('residualScoreCard');
+        area.style.display = '';
+        card.className = 'score-card ' + getRatingClass(rr);
+    }
+}
+
+/* ── Attachments ─────────────────────────────────────────────────────────── */
 async function uploadAttachment() {
     if (!currentRiskId) { showToast('Please complete Step 1 first.', 'danger'); return; }
     const fileInput = document.getElementById('AttachmentFile');
-    if (!fileInput.files.length) { showToast('Please select a file.', 'warning'); return; }
+    if (!fileInput.files.length) return;
+
+    const statusDiv  = document.getElementById('uploadStatus');
+    const statusText = document.getElementById('uploadStatusText');
+    statusDiv.style.display = '';
+    statusText.textContent = `Uploading ${fileInput.files[0].name}...`;
 
     const fd = new FormData();
     fd.append('file', fileInput.files[0]);
-
     const url = (window.API_BASE || 'http://localhost:5000') + `/api/risk/${currentRiskId}/attachments`;
-    const res = await fetch(url, {
-        method: 'POST',
-        headers: { 'X-User-Id': (window.USER_ID || '').toString(), 'X-Admin-Flag': (window.ADMIN_FLAG || 'N').toString() },
-        body: fd
-    }).then(r => r.json());
 
-    if (res && res.success) {
-        showToast('File uploaded successfully.', 'success');
+    try {
+        const res = await fetch(url, {
+            method: 'POST',
+            headers: { 'X-User-Id': (window.USER_ID || '').toString(), 'X-Admin-Flag': (window.ADMIN_FLAG || 'N') },
+            body: fd
+        }).then(r => r.json());
+
+        if (res?.success) { showToast('File uploaded successfully.', 'success'); loadAttachmentsList(); }
+        else showToast(res?.message || 'Upload failed.', 'danger');
+    } finally {
+        statusDiv.style.display = 'none';
         fileInput.value = '';
-        loadAttachmentsList();
-    } else {
-        showToast((res && res.message) || 'Upload failed.', 'danger');
     }
 }
 
@@ -359,96 +785,178 @@ async function loadAttachmentsList() {
     const r = await apiCall('GET', `/api/risk/${currentRiskId}/attachments`);
     const list = document.getElementById('attachmentsList');
     if (!list) return;
-    if (r && r.success && r.data && r.data.length > 0) {
+    if (r?.success && r.data?.length) {
         list.innerHTML = r.data.map(a => `
-            <div class="d-flex align-items-center justify-content-between border rounded p-2 mb-2">
-                <div>
-                    <i class="bi bi-paperclip me-2"></i>
-                    <strong>${a.fileName}</strong>
-                    <small class="text-muted ms-2">${(a.fileSize / 1024).toFixed(1)} KB</small>
+            <div class="attachment-item">
+                <div class="attachment-item-info">
+                    <i class="bi bi-file-earmark-check"></i>
+                    <div>
+                        <div class="attachment-item-name">${a.fileName}</div>
+                        <div class="attachment-item-meta">${(a.fileSize/1024).toFixed(1)} KB &bull; ${a.fileType}</div>
+                    </div>
                 </div>
-                <div>
-                    <a href="${a.filePath}" target="_blank" class="btn btn-sm btn-outline-secondary me-1">
+                <div class="d-flex gap-2">
+                    <a href="${a.filePath}" target="_blank" class="btn btn-sm btn-outline-secondary rounded-pill">
                         <i class="bi bi-download"></i>
                     </a>
-                    <button class="btn btn-sm btn-outline-danger" onclick="deleteAttachment(${a.id})">
+                    <button class="btn btn-sm btn-outline-danger rounded-pill"
+                            onclick="deleteAttachment(${a.id})">
                         <i class="bi bi-trash"></i>
                     </button>
                 </div>
             </div>`).join('');
     } else {
-        list.innerHTML = '<p class="text-muted">No attachments yet.</p>';
+        list.innerHTML = '<p class="text-muted small text-center py-2">No attachments yet.</p>';
     }
 }
 
-async function deleteAttachment(attachmentId) {
-    if (!currentRiskId) return;
-    const r = await apiCall('DELETE', `/api/risk/${currentRiskId}/attachments/${attachmentId}`);
-    if (r && r.success) { showToast('Attachment deleted.', 'success'); loadAttachmentsList(); }
-    else showToast((r && r.message) || 'Delete failed.', 'danger');
+async function deleteAttachment(id) {
+    const r = await apiCall('DELETE', `/api/risk/${currentRiskId}/attachments/${id}`);
+    if (r?.success) { showToast('Attachment deleted.', 'success'); loadAttachmentsList(); }
+    else showToast(r?.message || 'Delete failed.', 'danger');
 }
 
-// ── Dropdown Loaders ──────────────────────────────────────────────────────
+/* ── Drag & Drop for attach zone ────────────────────────────────────────── */
+function initDropZone() {
+    const zone  = document.getElementById('dropZone');
+    const input = document.getElementById('AttachmentFile');
+    if (!zone) return;
+    zone.addEventListener('dragover',  e => { e.preventDefault(); zone.classList.add('dragover'); });
+    zone.addEventListener('dragleave', () => zone.classList.remove('dragover'));
+    zone.addEventListener('drop', e => {
+        e.preventDefault();
+        zone.classList.remove('dragover');
+        if (e.dataTransfer.files.length) {
+            // Transfer files to input and trigger upload
+            const dt = new DataTransfer();
+            dt.items.add(e.dataTransfer.files[0]);
+            input.files = dt.files;
+            uploadAttachment();
+        }
+    });
+}
+
+/* ── Dropdown Loaders ────────────────────────────────────────────────────── */
+function addOption(selectId, value, text) {
+    const sel = document.getElementById(selectId);
+    if (!sel) return;
+    const o = document.createElement('option');
+    o.value = value; o.textContent = text;
+    sel.appendChild(o);
+}
 
 function loadDropdowns() {
-    apiCall('GET', '/api/bu/dropdown').then(r => {
-        if (r && r.success) r.data.forEach(d => addOption('fBU', d.value, d.text));
+    apiCall('GET','/api/bu/dropdown').then(r => {
+        if (r?.success) r.data.forEach(d => addOption('BUId', d.value, d.text));
     });
-    apiCall('GET', '/api/permission/fy/dropdown').then(r => {
-        if (r && r.success) r.data.forEach(d => addOption('fFY', d.value, d.text));
+    apiCall('GET','/api/permission/fy/dropdown').then(r => {
+        if (r?.success) r.data.forEach(d => addOption('FYId', d.value, d.text));
     });
-    apiCall('GET', '/api/riskcategory/dropdown').then(r => {
-        if (r && r.success) r.data.forEach(d => addOption('fCat', d.riskCatId, d.riskCatName));
+    apiCall('GET','/api/riskcategory/dropdown').then(r => {
+        if (r?.success) r.data.forEach(d => addOption('RiskCatId', d.riskCatId ?? d.value, d.riskCatName ?? d.text));
     });
-    apiCall('GET', '/api/function/dropdown').then(r => {
-        if (r && r.success) {
+    apiCall('GET','/api/function/dropdown').then(r => {
+        if (r?.success) {
             r.data.forEach(d => {
-                addOption('fFunc', d.value, d.text);
+                addOption('FunctionId', d.value, d.text);
                 addOption('ResponsibleTeam', d.text, d.text);
             });
         }
     });
-    apiCall('GET', '/api/user/dropdown').then(r => {
-        if (r && r.success) {
+    apiCall('GET','/api/user/dropdown').then(r => {
+        if (r?.success) {
             r.data.forEach(d => {
                 addOption('OwnerId', d.value, d.text);
                 addOption('ChampionId', d.value, d.text);
             });
         }
     });
-    // Frequency (ActionFrequency_Master exposed via /api/frequency/dropdown if it exists)
-    // Fallback static list
-    [{ v: 'MNT', t: 'Monthly' }, { v: 'QTR', t: 'Quarterly' }, { v: 'YER', t: 'Yearly' }]
-        .forEach(f => addOption('FrequencyId', f.v, f.t));
 }
 
-function addOption(selectId, value, text) {
-    const sel = document.getElementById(selectId);
-    if (!sel) return;
-    const o = document.createElement('option');
-    o.value = value; o.text = text;
-    sel.appendChild(o);
-}
+/* ── Cascading Sub-Category (fixed) ─────────────────────────────────────── */
+function initCascadingDropdown() {
+    const catSel    = document.getElementById('RiskCatId');
+    const subCatSel = document.getElementById('RiskSubCatId');
+    if (!catSel || !subCatSel) return;
 
-function loadSubCats() {
-    const catId = document.getElementById('fCat').value;
-    const sub = document.getElementById('fSubCat');
-    sub.innerHTML = '<option value="">-- Select Sub-Category --</option>';
-    if (!catId) return;
-    apiCall('GET', `/api/risksubcategory/dropdown?riskCatId=${catId}&mode=ACTIVE`).then(r => {
-        if (r && r.success && r.data && r.data.length > 0) {
-            r.data.forEach(d => addOption('fSubCat', d.riskSubCatId ?? d.value, d.riskSubCatName ?? d.text));
-        } else {
-            sub.innerHTML = '<option value="">No sub-categories available</option>';
-        }
+    catSel.addEventListener('change', function () {
+        const catId = this.value;
+        subCatSel.innerHTML = '<option value="">Select...</option>';
+        subCatSel.disabled  = true;
+        subCatSel.classList.remove('is-valid','is-invalid');
+        if (!catId) return;
+
+        subCatSel.classList.add('loading');
+        subCatSel.innerHTML = '<option value="">Loading sub-categories...</option>';
+
+        const base   = window.API_BASE || 'http://localhost:5000';
+        const userId = document.querySelector('meta[name="user-id"]')?.content || '';
+        const adminF = document.querySelector('meta[name="admin-flag"]')?.content || '';
+
+        fetch(`${base}/api/risksubcategory/dropdown?riskCatId=${catId}&mode=ACTIVE`, {
+            headers: { 'X-User-Id': userId, 'X-Admin-Flag': adminF }
+        })
+        .then(r => { if (!r.ok) throw new Error(`HTTP ${r.status}`); return r.json(); })
+        .then(data => {
+            subCatSel.classList.remove('loading');
+            subCatSel.disabled  = false;
+            subCatSel.innerHTML = '<option value="">Select Sub-Category...</option>';
+            if (data.success && data.data?.length) {
+                data.data.forEach(item => addOption('RiskSubCatId', item.riskSubCatId ?? item.value, item.riskSubCatName ?? item.text));
+            } else {
+                subCatSel.innerHTML = '<option value="">No sub-categories available</option>';
+            }
+        })
+        .catch(err => {
+            subCatSel.classList.remove('loading');
+            subCatSel.disabled  = false;
+            subCatSel.innerHTML = '<option value="">Failed to load — try again</option>';
+            console.error('[ERMS] Sub-category fetch failed:', err);
+        });
     });
 }
 
-// ── Init ──────────────────────────────────────────────────────────────────
+/* ── Character Counters ──────────────────────────────────────────────────── */
+function initCharCounters() {
+    const titleEl   = document.getElementById('RiskTitle');
+    const titleCnt  = document.getElementById('titleCharCount');
+    const descEl    = document.getElementById('Description');
+    const descCnt   = document.getElementById('descCharCount');
 
+    if (titleEl && titleCnt) {
+        titleEl.addEventListener('input', function () {
+            const n = this.value.length;
+            titleCnt.textContent = `${n} / 300 characters`;
+            titleCnt.style.color = n > 270 ? '#ef4444' : '';
+        });
+    }
+    if (descEl && descCnt) {
+        descEl.addEventListener('input', function () {
+            const n = this.value.length;
+            descCnt.textContent = n < 20
+                ? `${n} characters (minimum 20)`
+                : `${n} characters ✓`;
+            descCnt.style.color = n < 20 ? '#f59e0b' : '#10b981';
+        });
+    }
+}
+
+/* ── Init ────────────────────────────────────────────────────────────────── */
 document.addEventListener('DOMContentLoaded', function () {
-    loadDropdowns();
     showStep(1);
-    initQuarterRatingCalculation();
+    updateStepIndicators(1, []);
+    updateNavFooter(1);
+    initCascadingDropdown();
+    initCharCounters();
+    initDropZone();
+
+    // Wire score card updates to the wizard's custom function
+    ['GrossImpact','GrossLikelihood','ResidualImpact','ResidualLikelihood']
+        .forEach(id => {
+            document.getElementById(id)?.addEventListener('change', updateScoreCards);
+        });
+
+    loadDropdowns();
 });
-</script>}
+</script>
+}
