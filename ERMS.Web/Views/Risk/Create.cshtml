@@ -1,25 +1,454 @@
 @{ ViewData["Title"] = "Create New Risk"; }
+
 <div class="mb-4"><a href="/Risk/Index" class="btn btn-outline-secondary rounded-pill"><i class="bi bi-arrow-left me-1"></i>Back to Risks</a></div>
-<div class="card"><div class="card-header"><h5 class="mb-0">New Risk Entry</h5></div><div class="card-body">
-    <div class="row g-3">
-        <div class="col-md-4"><label class="form-label">Business Unit</label><select class="form-select" id="fBU"></select></div>
-        <div class="col-md-4"><label class="form-label">Financial Year</label><select class="form-select" id="fFY"></select></div>
-        <div class="col-md-4"><label class="form-label">Risk Category</label><select class="form-select" id="fCat" onchange="loadSubCats()"></select></div>
-        <div class="col-md-4"><label class="form-label">Sub-Category</label><select class="form-select" id="fSubCat"></select></div>
-        <div class="col-md-4"><label class="form-label">Function</label><select class="form-select" id="fFunc"></select></div>
-        <div class="col-md-4"><label class="form-label">Impact Level</label><select class="form-select" id="fImpact"><option>High</option><option selected>Medium</option><option>Low</option></select></div>
-        <div class="col-md-4"><label class="form-label">Likelihood</label><select class="form-select" id="fLike"><option>High</option><option selected>Medium</option><option>Low</option></select></div>
-        <div class="col-12"><label class="form-label">Risk Title</label><input type="text" class="form-control" id="fTitle" maxlength="200"/></div>
-        <div class="col-12"><label class="form-label">Description <small class="text-muted">(min 20 characters)</small></label><textarea class="form-control" id="fDesc" rows="4"></textarea></div>
-        <div class="col-12"><button class="btn btn-primary rounded-pill me-2" onclick="saveRisk()"><i class="bi bi-save me-1"></i>Save Draft</button><button class="btn btn-success rounded-pill" onclick="saveAndSubmit()"><i class="bi bi-send me-1"></i>Save & Submit</button></div>
+
+<div class="card">
+    <div class="card-header d-flex justify-content-between align-items-center">
+        <h5 class="mb-0">New Risk Entry</h5>
+        <div class="d-flex gap-2" id="wizardStepIndicators">
+            <span class="badge rounded-pill bg-primary wizard-badge" data-step="1">1 Overview</span>
+            <span class="badge rounded-pill bg-secondary wizard-badge" data-step="2">2 People</span>
+            <span class="badge rounded-pill bg-secondary wizard-badge" data-step="3">3 Assessment</span>
+            <span class="badge rounded-pill bg-secondary wizard-badge" data-step="4">4 Rating</span>
+            <span class="badge rounded-pill bg-secondary wizard-badge" data-step="5">5 Attachments</span>
+        </div>
     </div>
-</div></div>
+    <div class="card-body">
+
+        <!-- Step 1 — Risk Overview -->
+        <div id="step-1" class="wizard-step">
+            <h5 class="mb-4">Risk Overview <small class="text-muted">Basic details</small></h5>
+            <div class="row g-3">
+                <div class="col-md-4"><label class="form-label fw-semibold">Business Unit</label><select class="form-select" id="fBU"></select></div>
+                <div class="col-md-4"><label class="form-label fw-semibold">Financial Year</label><select class="form-select" id="fFY"></select></div>
+                <div class="col-md-4"><label class="form-label fw-semibold">Risk Category</label><select class="form-select" id="fCat" onchange="loadSubCats()"></select></div>
+                <div class="col-md-4"><label class="form-label fw-semibold">Sub-Category</label><select class="form-select" id="fSubCat"></select></div>
+                <div class="col-md-4"><label class="form-label fw-semibold">Function</label><select class="form-select" id="fFunc"></select></div>
+                <div class="col-md-2"><label class="form-label fw-semibold">Impact Level</label><select class="form-select" id="fImpact"><option>High</option><option selected>Medium</option><option>Low</option></select></div>
+                <div class="col-md-2"><label class="form-label fw-semibold">Likelihood</label><select class="form-select" id="fLike"><option>High</option><option selected>Medium</option><option>Low</option></select></div>
+                <div class="col-12"><label class="form-label fw-semibold">Risk Title</label><input type="text" class="form-control" id="fTitle" maxlength="200"/></div>
+                <div class="col-12"><label class="form-label fw-semibold">Description <small class="text-muted">(min 20 characters)</small></label><textarea class="form-control" id="fDesc" rows="4"></textarea></div>
+            </div>
+        </div>
+
+        <!-- Step 2 — People Overview -->
+        <div id="step-2" class="wizard-step" style="display:none;">
+            <h5 class="mb-4">People Overview <small class="text-muted">Owners &amp; champions</small></h5>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Responsibility (Owner) <span class="text-danger">*</span></label>
+                    <select id="OwnerId" class="form-select" required>
+                        <option value="">-- Select Owner --</option>
+                    </select>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Risk Champion <span class="text-danger">*</span></label>
+                    <select id="ChampionId" class="form-select" required>
+                        <option value="">-- Select Champion --</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 3 — Risk Assessment -->
+        <div id="step-3" class="wizard-step" style="display:none;">
+            <h5 class="mb-4">Risk Assessment <small class="text-muted">Response measure &amp; line of action</small></h5>
+            <div class="row g-3">
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Risk Response Measure</label>
+                    <textarea id="ResponseMeasure" class="form-control" rows="4"></textarea>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Current Controls</label>
+                    <textarea id="CurrentControls" class="form-control" rows="4"></textarea>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Identified Line of Action</label>
+                    <textarea id="LineOfAction" class="form-control" rows="4"></textarea>
+                </div>
+                <div class="col-md-6">
+                    <label class="form-label fw-semibold">Responsible Team</label>
+                    <select id="ResponsibleTeam" class="form-select">
+                        <option value="">-- Select --</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">Target Date</label>
+                    <input type="date" id="TargetDate" class="form-control" />
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label fw-semibold">Frequency</label>
+                    <select id="FrequencyId" class="form-select">
+                        <option value="">-- Select --</option>
+                    </select>
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 4 — Quarter Rating -->
+        <div id="step-4" class="wizard-step" style="display:none;">
+            <h5 class="mb-4">Quarter Rating <small class="text-muted">Gross &amp; residual scores</small></h5>
+            <div class="row g-3 mb-4">
+                <div class="col-md-3">
+                    <label class="form-label fw-semibold">Quarter <span class="text-danger">*</span></label>
+                    <select id="Quarter" class="form-select" required>
+                        <option value="">Select</option>
+                        <option value="Q1">Q1</option>
+                        <option value="Q2">Q2</option>
+                        <option value="Q3">Q3</option>
+                        <option value="Q4">Q4</option>
+                    </select>
+                </div>
+            </div>
+            <div class="row g-3 mb-3">
+                <div class="col-12"><h6 class="text-muted border-bottom pb-1">Gross Risk</h6></div>
+                <div class="col-md-3">
+                    <label class="form-label">Impact</label>
+                    <select id="GrossImpact" class="form-select">
+                        <option value="">Select</option>
+                        <option value="Low (1)">Low (1)</option>
+                        <option value="Low (2)">Low (2)</option>
+                        <option value="Moderate (3)">Moderate (3)</option>
+                        <option value="High (4)">High (4)</option>
+                        <option value="Critical (5)">Critical (5)</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Likelihood</label>
+                    <select id="GrossLikelihood" class="form-select">
+                        <option value="">Select</option>
+                        <option value="Rare (1)">Rare (1)</option>
+                        <option value="Unlikely (2)">Unlikely (2)</option>
+                        <option value="Probable (3)">Probable (3)</option>
+                        <option value="Likely (4)">Likely (4)</option>
+                        <option value="Almost Certain (5)">Almost Certain (5)</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Score</label>
+                    <input type="text" id="GrossScore" class="form-control bg-body-secondary" readonly placeholder="Auto-calculated" />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Rating</label>
+                    <input type="text" id="GrossRating" class="form-control bg-body-secondary" readonly placeholder="Auto-calculated" />
+                </div>
+            </div>
+            <div class="row g-3">
+                <div class="col-12"><h6 class="text-muted border-bottom pb-1">Residual Risk (after controls)</h6></div>
+                <div class="col-md-3">
+                    <label class="form-label">Impact</label>
+                    <select id="ResidualImpact" class="form-select">
+                        <option value="">Select</option>
+                        <option value="Low (1)">Low (1)</option>
+                        <option value="Low (2)">Low (2)</option>
+                        <option value="Moderate (3)">Moderate (3)</option>
+                        <option value="High (4)">High (4)</option>
+                        <option value="Critical (5)">Critical (5)</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Likelihood</label>
+                    <select id="ResidualLikelihood" class="form-select">
+                        <option value="">Select</option>
+                        <option value="Rare (1)">Rare (1)</option>
+                        <option value="Unlikely (2)">Unlikely (2)</option>
+                        <option value="Probable (3)">Probable (3)</option>
+                        <option value="Likely (4)">Likely (4)</option>
+                        <option value="Almost Certain (5)">Almost Certain (5)</option>
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Score</label>
+                    <input type="text" id="ResidualScore" class="form-control bg-body-secondary" readonly placeholder="Auto-calculated" />
+                </div>
+                <div class="col-md-3">
+                    <label class="form-label">Rating</label>
+                    <input type="text" id="ResidualRating" class="form-control bg-body-secondary" readonly placeholder="Auto-calculated" />
+                </div>
+            </div>
+        </div>
+
+        <!-- Step 5 — Attachments -->
+        <div id="step-5" class="wizard-step" style="display:none;">
+            <h5 class="mb-4">Attachments <small class="text-muted">Upload supporting files</small></h5>
+            <div class="mb-3">
+                <label class="form-label fw-semibold">Upload File</label>
+                <input type="file" id="AttachmentFile" class="form-control"
+                       accept=".pdf,.doc,.docx,.xls,.xlsx,.png,.jpg,.jpeg" />
+                <div class="form-text">Allowed: PDF, Word, Excel, Images. Max size: 10 MB</div>
+            </div>
+            <button type="button" class="btn btn-outline-primary rounded-pill mb-4"
+                    onclick="uploadAttachment()">
+                <i class="bi bi-upload me-1"></i> Upload
+            </button>
+            <div id="attachmentsList"></div>
+        </div>
+
+        <!-- Wizard Navigation -->
+        <div class="d-flex justify-content-between mt-4 pt-3 border-top">
+            <button class="btn btn-outline-secondary rounded-pill" id="btnPrev"
+                    onclick="prevStep()" style="display:none;">
+                <i class="bi bi-arrow-left me-1"></i> Previous
+            </button>
+            <div class="ms-auto">
+                <button class="btn btn-primary rounded-pill" id="btnNext" onclick="nextStep()">
+                    Next <i class="bi bi-arrow-right ms-1"></i>
+                </button>
+                <button class="btn btn-success rounded-pill" id="btnFinish"
+                        onclick="finishWizard()" style="display:none;">
+                    <i class="bi bi-check-lg me-1"></i> Finish
+                </button>
+            </div>
+        </div>
+
+    </div>
+</div>
+
 @section scripts {
 <script>
-function loadDropdowns(){apiCall('GET','/api/bu/dropdown').then(r=>{if(r.success)r.data.forEach(d=>{const o=document.createElement('option');o.value=d.value;o.text=d.text;document.getElementById('fBU').appendChild(o)})});apiCall('GET','/api/permission/fy/dropdown').then(r=>{if(r.success)r.data.forEach(d=>{const o=document.createElement('option');o.value=d.value;o.text=d.text;document.getElementById('fFY').appendChild(o)})});apiCall('GET','/api/riskcategory/dropdown').then(r=>{if(r.success)r.data.forEach(d=>{const o=document.createElement('option');o.value=d.riskCatId;o.text=d.riskCatName;document.getElementById('fCat').appendChild(o)})});apiCall('GET','/api/function/dropdown').then(r=>{if(r.success)r.data.forEach(d=>{const o=document.createElement('option');o.value=d.value;o.text=d.text;document.getElementById('fFunc').appendChild(o)})})}
-function loadSubCats(){const catId=document.getElementById('fCat').value;const sub=document.getElementById('fSubCat');sub.innerHTML='<option value="">-- Select Sub-Category --</option>';if(!catId||catId==='0'||catId===''){return;}apiCall('GET',`/api/risksubcategory/dropdown?riskCatId=${catId}&mode=ACTIVE`).then(r=>{if(r.success&&r.data&&r.data.length>0){r.data.forEach(d=>{const o=document.createElement('option');o.value=d.riskSubCatId ?? d.RiskSubCatId ?? d.value;o.text=d.riskSubCatName ?? d.RiskSubCatName ?? d.text;sub.appendChild(o)})}else{sub.innerHTML='<option value="">No sub-categories available</option>';}})}
-function getBody(){return{buId:document.getElementById('fBU').value,fyId:document.getElementById('fFY').value,riskCatId:parseInt(document.getElementById('fCat').value)||0,riskSubCatId:parseInt(document.getElementById('fSubCat').value)||0,functionId:parseInt(document.getElementById('fFunc').value)||0,riskTitle:document.getElementById('fTitle').value,description:document.getElementById('fDesc').value,impactLevel:document.getElementById('fImpact').value,likelihood:document.getElementById('fLike').value}}
-function saveRisk(){apiCall('POST','/api/risk/create',getBody()).then(r=>{showToast(r.message,r.success?'success':'danger');if(r.success)window.location.href='/Risk/Index'})}
-function saveAndSubmit(){apiCall('POST','/api/risk/create',getBody()).then(r=>{if(!r.success){showToast(r.message,'danger');return}const riskId=r.data;apiCall('POST',`/api/risk/submit/${riskId}`).then(r2=>{showToast(r2.message,r2.success?'success':'danger');if(r2.success)window.location.href='/Risk/Index'})})}
-document.addEventListener('DOMContentLoaded',loadDropdowns);
+// ── Wizard State ──────────────────────────────────────────────────────────
+let currentStep  = 1;
+const totalSteps = 5;
+let currentRiskId = null;
+
+function showStep(step) {
+    for (let i = 1; i <= totalSteps; i++) {
+        const el = document.getElementById(`step-${i}`);
+        if (el) el.style.display = (i === step) ? 'block' : 'none';
+    }
+    currentStep = step;
+
+    document.getElementById('btnPrev').style.display   = step > 1 ? 'inline-block' : 'none';
+    document.getElementById('btnNext').style.display   = step < totalSteps ? 'inline-block' : 'none';
+    document.getElementById('btnFinish').style.display = step === totalSteps ? 'inline-block' : 'none';
+
+    // Update badge colours
+    document.querySelectorAll('.wizard-badge').forEach(b => {
+        const s = parseInt(b.dataset.step);
+        b.className = `badge rounded-pill wizard-badge ${s < step ? 'bg-success' : s === step ? 'bg-primary' : 'bg-secondary'}`;
+    });
+}
+
+async function nextStep() {
+    const saved = await saveCurrentStep();
+    if (saved && currentStep < totalSteps) showStep(currentStep + 1);
+}
+
+function prevStep() {
+    if (currentStep > 1) showStep(currentStep - 1);
+}
+
+async function finishWizard() {
+    if (currentStep === totalSteps) {
+        window.location.href = currentRiskId ? `/Risk/Detail/${currentRiskId}` : '/Risk/Index';
+    }
+}
+
+// ── Step Savers ───────────────────────────────────────────────────────────
+
+async function saveCurrentStep() {
+    if (currentStep === 1) return await saveStep1();
+    if (currentStep === 2) return await saveStep2();
+    if (currentStep === 3) return await saveStep3();
+    if (currentStep === 4) return await saveStep4();
+    return true; // Step 5 saves on upload
+}
+
+async function saveStep1() {
+    const body = {
+        buId:         document.getElementById('fBU').value,
+        fyId:         document.getElementById('fFY').value,
+        riskCatId:    parseInt(document.getElementById('fCat').value) || 0,
+        riskSubCatId: parseInt(document.getElementById('fSubCat').value) || 0,
+        functionId:   parseInt(document.getElementById('fFunc').value) || 0,
+        riskTitle:    document.getElementById('fTitle').value,
+        description:  document.getElementById('fDesc').value,
+        impactLevel:  document.getElementById('fImpact').value,
+        likelihood:   document.getElementById('fLike').value
+    };
+    if (!body.riskTitle) { showToast('Risk Title is required.', 'danger'); return false; }
+    if (body.description.length < 20) { showToast('Description must be at least 20 characters.', 'danger'); return false; }
+
+    const r = await apiCall('POST', '/api/risk/create', body);
+    if (r && r.success) {
+        currentRiskId = r.data;
+        return true;
+    }
+    showToast((r && r.message) || 'Failed to save Risk Overview.', 'danger');
+    return false;
+}
+
+async function saveStep2() {
+    if (!currentRiskId) { showToast('Please complete Step 1 first.', 'danger'); return false; }
+    const ownerId    = parseInt(document.getElementById('OwnerId').value);
+    const championId = parseInt(document.getElementById('ChampionId').value);
+    if (!ownerId)    { showToast('Please select a Risk Owner.', 'danger'); return false; }
+    if (!championId) { showToast('Please select a Risk Champion.', 'danger'); return false; }
+
+    const r = await apiCall('POST', `/api/risk/${currentRiskId}/people`, { OwnerId: ownerId, ChampionId: championId });
+    if (r && r.success) return true;
+    showToast((r && r.message) || 'Failed to save People Overview.', 'danger');
+    return false;
+}
+
+async function saveStep3() {
+    if (!currentRiskId) return false;
+    const body = {
+        ResponseMeasure: document.getElementById('ResponseMeasure').value,
+        CurrentControls: document.getElementById('CurrentControls').value,
+        LineOfAction:    document.getElementById('LineOfAction').value,
+        ResponsibleTeam: document.getElementById('ResponsibleTeam').value,
+        TargetDate:      document.getElementById('TargetDate').value,
+        FrequencyId:     document.getElementById('FrequencyId').value
+    };
+    const r = await apiCall('POST', `/api/risk/${currentRiskId}/assessment`, body);
+    if (r && r.success) return true;
+    showToast((r && r.message) || 'Failed to save Assessment.', 'danger');
+    return false;
+}
+
+async function saveStep4() {
+    if (!currentRiskId) return false;
+    const quarter = document.getElementById('Quarter').value;
+    if (!quarter) { showToast('Please select a Quarter.', 'danger'); return false; }
+    const body = {
+        Quarter:            quarter,
+        GrossImpact:        document.getElementById('GrossImpact').value,
+        GrossLikelihood:    document.getElementById('GrossLikelihood').value,
+        GrossScore:         parseInt(document.getElementById('GrossScore').value) || 0,
+        GrossRating:        document.getElementById('GrossRating').value,
+        ResidualImpact:     document.getElementById('ResidualImpact').value,
+        ResidualLikelihood: document.getElementById('ResidualLikelihood').value,
+        ResidualScore:      parseInt(document.getElementById('ResidualScore').value) || 0,
+        ResidualRating:     document.getElementById('ResidualRating').value
+    };
+    const r = await apiCall('POST', `/api/risk/${currentRiskId}/quarterrating`, body);
+    if (r && r.success) return true;
+    showToast((r && r.message) || 'Failed to save Quarter Rating.', 'danger');
+    return false;
+}
+
+// ── Attachments ───────────────────────────────────────────────────────────
+
+async function uploadAttachment() {
+    if (!currentRiskId) { showToast('Please complete Step 1 first.', 'danger'); return; }
+    const fileInput = document.getElementById('AttachmentFile');
+    if (!fileInput.files.length) { showToast('Please select a file.', 'warning'); return; }
+
+    const fd = new FormData();
+    fd.append('file', fileInput.files[0]);
+
+    const url = (window.API_BASE || 'http://localhost:5000') + `/api/risk/${currentRiskId}/attachments`;
+    const res = await fetch(url, {
+        method: 'POST',
+        headers: { 'X-User-Id': (window.USER_ID || '').toString(), 'X-Admin-Flag': (window.ADMIN_FLAG || 'N').toString() },
+        body: fd
+    }).then(r => r.json());
+
+    if (res && res.success) {
+        showToast('File uploaded successfully.', 'success');
+        fileInput.value = '';
+        loadAttachmentsList();
+    } else {
+        showToast((res && res.message) || 'Upload failed.', 'danger');
+    }
+}
+
+async function loadAttachmentsList() {
+    if (!currentRiskId) return;
+    const r = await apiCall('GET', `/api/risk/${currentRiskId}/attachments`);
+    const list = document.getElementById('attachmentsList');
+    if (!list) return;
+    if (r && r.success && r.data && r.data.length > 0) {
+        list.innerHTML = r.data.map(a => `
+            <div class="d-flex align-items-center justify-content-between border rounded p-2 mb-2">
+                <div>
+                    <i class="bi bi-paperclip me-2"></i>
+                    <strong>${a.fileName}</strong>
+                    <small class="text-muted ms-2">${(a.fileSize / 1024).toFixed(1)} KB</small>
+                </div>
+                <div>
+                    <a href="${a.filePath}" target="_blank" class="btn btn-sm btn-outline-secondary me-1">
+                        <i class="bi bi-download"></i>
+                    </a>
+                    <button class="btn btn-sm btn-outline-danger" onclick="deleteAttachment(${a.id})">
+                        <i class="bi bi-trash"></i>
+                    </button>
+                </div>
+            </div>`).join('');
+    } else {
+        list.innerHTML = '<p class="text-muted">No attachments yet.</p>';
+    }
+}
+
+async function deleteAttachment(attachmentId) {
+    if (!currentRiskId) return;
+    const r = await apiCall('DELETE', `/api/risk/${currentRiskId}/attachments/${attachmentId}`);
+    if (r && r.success) { showToast('Attachment deleted.', 'success'); loadAttachmentsList(); }
+    else showToast((r && r.message) || 'Delete failed.', 'danger');
+}
+
+// ── Dropdown Loaders ──────────────────────────────────────────────────────
+
+function loadDropdowns() {
+    apiCall('GET', '/api/bu/dropdown').then(r => {
+        if (r && r.success) r.data.forEach(d => addOption('fBU', d.value, d.text));
+    });
+    apiCall('GET', '/api/permission/fy/dropdown').then(r => {
+        if (r && r.success) r.data.forEach(d => addOption('fFY', d.value, d.text));
+    });
+    apiCall('GET', '/api/riskcategory/dropdown').then(r => {
+        if (r && r.success) r.data.forEach(d => addOption('fCat', d.riskCatId, d.riskCatName));
+    });
+    apiCall('GET', '/api/function/dropdown').then(r => {
+        if (r && r.success) {
+            r.data.forEach(d => {
+                addOption('fFunc', d.value, d.text);
+                addOption('ResponsibleTeam', d.text, d.text);
+            });
+        }
+    });
+    apiCall('GET', '/api/user/dropdown').then(r => {
+        if (r && r.success) {
+            r.data.forEach(d => {
+                addOption('OwnerId', d.value, d.text);
+                addOption('ChampionId', d.value, d.text);
+            });
+        }
+    });
+    // Frequency (ActionFrequency_Master exposed via /api/frequency/dropdown if it exists)
+    // Fallback static list
+    [{ v: 'MNT', t: 'Monthly' }, { v: 'QTR', t: 'Quarterly' }, { v: 'YER', t: 'Yearly' }]
+        .forEach(f => addOption('FrequencyId', f.v, f.t));
+}
+
+function addOption(selectId, value, text) {
+    const sel = document.getElementById(selectId);
+    if (!sel) return;
+    const o = document.createElement('option');
+    o.value = value; o.text = text;
+    sel.appendChild(o);
+}
+
+function loadSubCats() {
+    const catId = document.getElementById('fCat').value;
+    const sub = document.getElementById('fSubCat');
+    sub.innerHTML = '<option value="">-- Select Sub-Category --</option>';
+    if (!catId) return;
+    apiCall('GET', `/api/risksubcategory/dropdown?riskCatId=${catId}&mode=ACTIVE`).then(r => {
+        if (r && r.success && r.data && r.data.length > 0) {
+            r.data.forEach(d => addOption('fSubCat', d.riskSubCatId ?? d.value, d.riskSubCatName ?? d.text));
+        } else {
+            sub.innerHTML = '<option value="">No sub-categories available</option>';
+        }
+    });
+}
+
+// ── Init ──────────────────────────────────────────────────────────────────
+
+document.addEventListener('DOMContentLoaded', function () {
+    loadDropdowns();
+    showStep(1);
+    initQuarterRatingCalculation();
+});
 </script>}

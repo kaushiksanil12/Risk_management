@@ -74,6 +74,7 @@ builder.Services.AddScoped<IFunctionRepository, FunctionRepository>();
 builder.Services.AddScoped<IUserPermissionRepository, UserPermissionRepository>();
 builder.Services.AddScoped<IRiskRepository, RiskRepository>();
 builder.Services.AddScoped<IDashboardRepository, DashboardRepository>();
+builder.Services.AddScoped<IRiskExtensionRepository, RiskExtensionRepository>();
 
 // Register Services (Scoped)
 builder.Services.AddScoped<IAuthService, AuthService>();
@@ -86,6 +87,7 @@ builder.Services.AddScoped<IUserPermissionService, UserPermissionService>();
 builder.Services.AddScoped<IRiskService, RiskService>();
 builder.Services.AddScoped<IDashboardService, DashboardService>();
 builder.Services.AddScoped<IEmailService, EmailService>();
+builder.Services.AddScoped<IRiskExtensionService, RiskExtensionService>();
 
 var app = builder.Build();
 

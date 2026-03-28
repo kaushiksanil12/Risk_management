@@ -23,7 +23,26 @@
             <div class="col-md-6"><strong>Reviewed by:</strong><br/><span id="dReviewedBy">@(Model.ReviewedByName ?? "N/A")</span></div>
         </div>
     </div></div>
-    <div class="card"><div class="card-header"><h6 class="mb-0"><i class="bi bi-clock-history me-2"></i>History Timeline</h6></div><div class="card-body" id="historyBody"><p class="text-muted">Loading...</p></div></div>
+    <div class="card mb-4"><div class="card-header"><h6 class="mb-0"><i class="bi bi-clock-history me-2"></i>History Timeline</h6></div><div class="card-body" id="historyBody"><p class="text-muted">Loading...</p></div></div>
+
+    <!-- Wizard extension sections -->
+    <div class="card mb-4" id="peopleCard" style="display:none;">
+        <div class="card-header"><h6 class="mb-0"><i class="bi bi-people me-2"></i>People Overview</h6></div>
+        <div class="card-body" id="peopleBody"></div>
+    </div>
+    <div class="card mb-4" id="assessmentCard" style="display:none;">
+        <div class="card-header"><h6 class="mb-0"><i class="bi bi-clipboard-check me-2"></i>Risk Assessment</h6></div>
+        <div class="card-body" id="assessmentBody"></div>
+    </div>
+    <div class="card mb-4" id="ratingsCard" style="display:none;">
+        <div class="card-header"><h6 class="mb-0"><i class="bi bi-bar-chart me-2"></i>Quarter Ratings</h6></div>
+        <div class="card-body" id="ratingsBody"></div>
+    </div>
+    <div class="card mb-4" id="attachmentsCard" style="display:none;">
+        <div class="card-header"><h6 class="mb-0"><i class="bi bi-paperclip me-2"></i>Attachments</h6></div>
+        <div class="card-body" id="attachmentsBody"></div>
+    </div>
+
 </div>
 <div class="col-lg-4">
     <!-- Action bar at bottom of detail page (Fix 4) -->
@@ -93,41 +112,116 @@ const impactBadge={'High':'bg-danger','Medium':'bg-warning text-dark','Low':'bg-
 const statusBadge={'Draft':'bg-secondary','Submitted':'bg-primary','UnderReview':'bg-info','Approved':'bg-success','Rejected':'bg-danger','RevisionRequired':'bg-warning text-dark','Closed':'bg-dark'};
 
 function loadRisk(){
-    apiCall('GET',`/api/risk/${riskId}`).then(r=>{
-        if(!r.success){showToast(r.message,'danger');return}
-        const k=r.data;
-        // Update history
-        if(k.history && k.history.length){
-            document.getElementById('historyBody').innerHTML=k.history.map(h=>`<div class="timeline-item"><div class="d-flex justify-content-between"><strong>${h.action||h.newStatus}</strong><small class="text-muted">${new Date(h.changedDate).toLocaleString()}</small></div><p class="mb-1"><span class="badge bg-secondary rounded-pill">${h.oldStatus||'—'}</span> → <span class="badge bg-primary rounded-pill">${h.newStatus}</span></p>${h.remarks?`<p class="text-muted mb-0 small">${h.remarks}</p>`:''}<small class="text-muted">by ${h.changedByName}</small><hr/></div>`).join('')
-        } else {
-            document.getElementById('historyBody').innerHTML='<p class="text-muted">No history</p>'
+    // Use /full to get all wizard sections in one call
+    apiCall('GET',`/api/risk/${riskId}/full`).then(r=>{
+        if(!r||!r.success){
+            // Fallback to existing endpoint if /full not available yet (tables not migrated)
+            return apiCall('GET',`/api/risk/${riskId}`).then(r2=>{ if(r2&&r2.success) renderCore(r2.data); });
         }
-        
-        // Update badges dynamically if they changed (not usually needed on initial load but good for consistency)
-        const sb = document.getElementById('statusBadge');
-        if (sb) {
-            sb.className = `badge rounded-pill ${statusBadge[k.status]||'bg-secondary'}`;
-            sb.textContent = k.status;
-        }
-        const imp = document.getElementById('dImpact');
-        if (imp) imp.className = `badge ${impactBadge[k.impactLevel]||'bg-secondary'} rounded-pill`;
-        const like = document.getElementById('dLike');
-        if (like) like.className = `badge ${impactBadge[k.likelihood]||'bg-secondary'} rounded-pill`;
-    })
+        const d=r.data;
+        if(d.core)    renderCore(d.core);
+        if(d.people)  renderPeople(d.people);
+        if(d.assessment) renderAssessment(d.assessment);
+        if(d.ratings && d.ratings.length)  renderRatings(d.ratings);
+        if(d.attachments && d.attachments.length) renderAttachments(d.attachments);
+        if(d.history && d.history.length)   renderHistory(d.history);
+    });
 }
+
+function renderCore(k){
+    if(k.history && k.history.length) renderHistory(k.history);
+    const sb=document.getElementById('statusBadge');
+    if(sb){sb.className=`badge rounded-pill ${statusBadge[k.status]||'bg-secondary'}`;sb.textContent=k.status;}
+    const imp=document.getElementById('dImpact');
+    if(imp) imp.className=`badge ${impactBadge[k.impactLevel]||'bg-secondary'} rounded-pill`;
+    const like=document.getElementById('dLike');
+    if(like) like.className=`badge ${impactBadge[k.likelihood]||'bg-secondary'} rounded-pill`;
+}
+
+function renderHistory(history){
+    document.getElementById('historyBody').innerHTML=history.map(h=>`
+        <div class="timeline-item"><div class="d-flex justify-content-between">
+        <strong>${h.action||h.newStatus}</strong>
+        <small class="text-muted">${new Date(h.changedDate).toLocaleString()}</small></div>
+        <p class="mb-1"><span class="badge bg-secondary rounded-pill">${h.oldStatus||'—'}</span> →
+        <span class="badge bg-primary rounded-pill">${h.newStatus}</span></p>
+        ${h.remarks?`<p class="text-muted mb-0 small">${h.remarks}</p>`:''}
+        <small class="text-muted">by ${h.changedByName}</small><hr/></div>`).join('');
+}
+
+function renderPeople(p){
+    document.getElementById('peopleBody').innerHTML=`
+        <div class="row g-3">
+            <div class="col-md-6"><strong>Owner:</strong><br/>${p.ownerName||'—'} <small class="text-muted">(${p.ownerUsername||''})</small></div>
+            <div class="col-md-6"><strong>Champion:</strong><br/>${p.championName||'—'} <small class="text-muted">(${p.championUsername||''})</small></div>
+        </div>`;
+    document.getElementById('peopleCard').style.display='';
+}
+
+function renderAssessment(a){
+    document.getElementById('assessmentBody').innerHTML=`
+        <div class="row g-3">
+            <div class="col-md-6"><strong>Response Measure:</strong><br/><p class="text-muted">${a.responseMeasure||'—'}</p></div>
+            <div class="col-md-6"><strong>Current Controls:</strong><br/><p class="text-muted">${a.currentControls||'—'}</p></div>
+            <div class="col-md-6"><strong>Line of Action:</strong><br/><p class="text-muted">${a.lineOfAction||'—'}</p></div>
+            <div class="col-md-3"><strong>Team:</strong><br/>${a.responsibleTeam||'—'}</div>
+            <div class="col-md-3"><strong>Target Date:</strong><br/>${a.targetDate?new Date(a.targetDate).toLocaleDateString():'—'}</div>
+            <div class="col-md-3"><strong>Frequency:</strong><br/>${a.frequencyName||a.frequencyId||'—'}</div>
+        </div>`;
+    document.getElementById('assessmentCard').style.display='';
+}
+
+function renderRatings(ratings){
+    const rows=ratings.map(q=>`
+        <tr><td><span class="badge bg-info text-dark">${q.quarter}</span></td>
+        <td>${q.grossImpact||'—'}</td><td>${q.grossLikelihood||'—'}</td>
+        <td><strong>${q.grossScore||0}</strong></td><td>${q.grossRating||'—'}</td>
+        <td>${q.residualImpact||'—'}</td><td>${q.residualLikelihood||'—'}</td>
+        <td><strong>${q.residualScore||0}</strong></td><td>${q.residualRating||'—'}</td></tr>`).join('');
+    document.getElementById('ratingsBody').innerHTML=`
+        <div class="table-responsive">
+        <table class="table table-sm table-bordered mb-0">
+            <thead class="table-light"><tr>
+                <th>Quarter</th>
+                <th colspan="4" class="text-center">Gross Risk</th>
+                <th colspan="4" class="text-center">Residual Risk</th>
+            </tr><tr>
+                <th></th>
+                <th>Impact</th><th>Likelihood</th><th>Score</th><th>Rating</th>
+                <th>Impact</th><th>Likelihood</th><th>Score</th><th>Rating</th>
+            </tr></thead>
+            <tbody>${rows}</tbody>
+        </table></div>`;
+    document.getElementById('ratingsCard').style.display='';
+}
+
+function renderAttachments(atts){
+    document.getElementById('attachmentsBody').innerHTML=atts.map(a=>`
+        <div class="d-flex align-items-center justify-content-between border rounded p-2 mb-2">
+            <div><i class="bi bi-paperclip me-2"></i><strong>${a.fileName}</strong>
+            <small class="text-muted ms-2">${(a.fileSize/1024).toFixed(1)} KB</small>
+            <small class="text-muted ms-2">by ${a.uploadedByName}</small></div>
+            <a href="${a.filePath}" target="_blank" class="btn btn-sm btn-outline-secondary">
+                <i class="bi bi-download"></i>
+            </a>
+        </div>`).join('');
+    document.getElementById('attachmentsCard').style.display='';
+}
+
 function submitRisk(id){
-    id = id || riskId;
+    id=id||riskId;
     apiCall('POST',`/api/risk/submit/${id}`).then(r=>{
         showToast(r.message,r.success?'success':'danger');
-        if(r.success) setTimeout(() => window.location.reload(), 1500);
+        if(r.success) setTimeout(()=>window.location.reload(),1500);
     })
 }
 function closeRisk(id){
-    id = id || riskId;
+    id=id||riskId;
     apiCall('POST',`/api/risk/close/${id}`).then(r=>{
         showToast(r.message,r.success?'success':'danger');
-        if(r.success) setTimeout(() => window.location.reload(), 1500);
+        if(r.success) setTimeout(()=>window.location.reload(),1500);
     })
 }
 document.addEventListener('DOMContentLoaded',loadRisk);
 </script>}
+

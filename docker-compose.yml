@@ -22,6 +22,7 @@ services:
       - ./ERMS.Database/04_CreateTriggers.sql:/docker-entrypoint-initdb.d/sql/04_CreateTriggers.sql:ro
       - ./ERMS.Database/05_SeedData.sql:/docker-entrypoint-initdb.d/sql/05_SeedData.sql:ro
       - ./ERMS.Database/06_EmailProcedure.sql:/docker-entrypoint-initdb.d/sql/06_EmailProcedure.sql:ro
+      - ./ERMS.Database/07_RiskWizard.sql:/docker-entrypoint-initdb.d/sql/07_RiskWizard.sql:ro
       # Mount the init entrypoint script
       - ./ERMS.Database/init-db.sh:/docker-entrypoint-initdb.d/init-db.sh:ro
       # Persist data
