@@ -10,22 +10,19 @@ echo "=== ERMS Database Initialization ==="
 # 01 — Skip CreateDatabase.sql as Docker already creates the DB via MARIADB_DATABASE
 # The USE statement is not needed since we connect directly to the database.
 
-echo "[1/6] Creating tables..."
+echo "[1/5] Creating tables..."
 mysql -u root -p"${MARIADB_ROOT_PASSWORD}" "${MARIADB_DATABASE}" < /docker-entrypoint-initdb.d/sql/02_CreateTables.sql
 
-echo "[2/6] Creating stored procedures..."
+echo "[2/5] Creating stored procedures..."
 mysql -u root -p"${MARIADB_ROOT_PASSWORD}" "${MARIADB_DATABASE}" < /docker-entrypoint-initdb.d/sql/03_CreateProcedures.sql
 
-echo "[3/6] Creating triggers..."
+echo "[3/5] Creating triggers..."
 mysql -u root -p"${MARIADB_ROOT_PASSWORD}" "${MARIADB_DATABASE}" < /docker-entrypoint-initdb.d/sql/04_CreateTriggers.sql
 
-echo "[4/6] Inserting seed data..."
+echo "[4/5] Inserting seed data..."
 mysql -u root -p"${MARIADB_ROOT_PASSWORD}" "${MARIADB_DATABASE}" < /docker-entrypoint-initdb.d/sql/05_SeedData.sql
 
-echo "[5/6] Creating email procedure..."
+echo "[5/5] Creating email procedure..."
 mysql -u root -p"${MARIADB_ROOT_PASSWORD}" "${MARIADB_DATABASE}" < /docker-entrypoint-initdb.d/sql/06_EmailProcedure.sql
-
-echo "[6/6] Creating Risk Wizard tables & procedures..."
-mysql -u root -p"${MARIADB_ROOT_PASSWORD}" "${MARIADB_DATABASE}" < /docker-entrypoint-initdb.d/sql/07_RiskWizard.sql
 
 echo "=== ERMS Database Initialization Complete ==="

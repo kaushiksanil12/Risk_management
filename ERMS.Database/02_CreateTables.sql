@@ -237,3 +237,75 @@ CREATE TABLE IF NOT EXISTS `Function_Audit_Log` (
     `ChangedDate`   DATETIME DEFAULT CURRENT_TIMESTAMP,
     `ChangeSummary` TEXT
 ) ENGINE=InnoDB;
+
+-- ============================================================
+-- RISK WIZARD EXTENSION TABLES (Steps 2–5)
+-- ============================================================
+
+-- 19. Risk_PeopleOverview  (Step 2)
+CREATE TABLE IF NOT EXISTS `Risk_PeopleOverview` (
+    `Id`          INT AUTO_INCREMENT PRIMARY KEY,
+    `RiskId`      INT NOT NULL UNIQUE,
+    `OwnerId`     INT NOT NULL,
+    `ChampionId`  INT NOT NULL,
+    `CreatedBy`   INT,
+    `CreatedDate` DATETIME DEFAULT CURRENT_TIMESTAMP,
+    `UpdatedBy`   INT,
+    `UpdatedDate` DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (`RiskId`)     REFERENCES `Risk_Master`(`RiskId`) ON DELETE CASCADE,
+    FOREIGN KEY (`OwnerId`)    REFERENCES `User_Master`(`UserId`),
+    FOREIGN KEY (`ChampionId`) REFERENCES `User_Master`(`UserId`)
+) ENGINE=InnoDB;
+
+-- 20. Risk_Assessment  (Step 3)
+CREATE TABLE IF NOT EXISTS `Risk_Assessment` (
+    `Id`              INT AUTO_INCREMENT PRIMARY KEY,
+    `RiskId`          INT NOT NULL UNIQUE,
+    `ResponseMeasure` TEXT NULL,
+    `CurrentControls` TEXT NULL,
+    `LineOfAction`    TEXT NULL,
+    `ResponsibleTeam` VARCHAR(200) NULL,
+    `TargetDate`      DATE NULL,
+    `FrequencyId`     VARCHAR(50) NULL,
+    `CreatedBy`       INT,
+    `CreatedDate`     DATETIME DEFAULT CURRENT_TIMESTAMP,
+    `UpdatedBy`       INT,
+    `UpdatedDate`     DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (`RiskId`)      REFERENCES `Risk_Master`(`RiskId`) ON DELETE CASCADE,
+    FOREIGN KEY (`FrequencyId`) REFERENCES `ActionFrequency_Master`(`AFId`)
+) ENGINE=InnoDB;
+
+-- 21. Risk_QuarterRating  (Step 4)
+CREATE TABLE IF NOT EXISTS `Risk_QuarterRating` (
+    `Id`                 INT AUTO_INCREMENT PRIMARY KEY,
+    `RiskId`             INT NOT NULL,
+    `Quarter`            VARCHAR(5) NOT NULL,
+    `GrossImpact`        VARCHAR(30) NULL,
+    `GrossLikelihood`    VARCHAR(30) NULL,
+    `GrossScore`         INT NULL,
+    `GrossRating`        VARCHAR(50) NULL,
+    `ResidualImpact`     VARCHAR(30) NULL,
+    `ResidualLikelihood` VARCHAR(30) NULL,
+    `ResidualScore`      INT NULL,
+    `ResidualRating`     VARCHAR(50) NULL,
+    `CreatedBy`          INT,
+    `CreatedDate`        DATETIME DEFAULT CURRENT_TIMESTAMP,
+    `UpdatedBy`          INT,
+    `UpdatedDate`        DATETIME DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
+    FOREIGN KEY (`RiskId`) REFERENCES `Risk_Master`(`RiskId`) ON DELETE CASCADE,
+    UNIQUE KEY `UK_Risk_Quarter` (`RiskId`, `Quarter`)
+) ENGINE=InnoDB;
+
+-- 22. Risk_Attachments  (Step 5)
+CREATE TABLE IF NOT EXISTS `Risk_Attachments` (
+    `Id`           INT AUTO_INCREMENT PRIMARY KEY,
+    `RiskId`       INT NOT NULL,
+    `FileName`     VARCHAR(255) NOT NULL,
+    `FilePath`     VARCHAR(500) NOT NULL,
+    `FileSize`     INT NULL,
+    `FileType`     VARCHAR(100) NULL,
+    `UploadedBy`   INT,
+    `UploadedDate` DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (`RiskId`)     REFERENCES `Risk_Master`(`RiskId`) ON DELETE CASCADE,
+    FOREIGN KEY (`UploadedBy`) REFERENCES `User_Master`(`UserId`)
+) ENGINE=InnoDB;
