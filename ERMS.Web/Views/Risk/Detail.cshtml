@@ -45,23 +45,27 @@
 
 </div>
 <div class="col-lg-4">
-    <!-- Action bar at bottom of detail page (Fix 4) -->
-    <div class="card mb-4 shadow-sm border-0">
-        <div class="card-header py-3"><h6 class="mb-0">Actions</h6></div>
+    <!-- Action bar at bottom of detail page -->
+    <div class="card mb-4 shadow-sm" style="border-radius: 12px; overflow: hidden;">
+        <div class="card-header py-3 border-bottom-0" style="background: rgba(255, 255, 255, 0.03);">
+            <h6 class="mb-0 fw-bold"><i class="bi bi-lightning-charge me-2 text-warning"></i>Available Actions</h6>
+        </div>
         <div class="card-body">
-            <div class="action-bar d-flex flex-column gap-2">
+            @{
+                bool hasActions = false;
+            }
+            <div class="action-bar d-flex flex-column gap-3">
 
                 @* Owner actions — Draft or RevisionRequired only *@
                 @if ((isOwner || isAdmin) &&
                      (Model.Status == "Draft" || Model.Status == "RevisionRequired"))
                 {
-                    <a href="/Risk/Edit/@Model.RiskId" class="btn btn-primary rounded-pill">
-                        <i class="bi bi-pencil me-1"></i> Edit Risk
+                    hasActions = true;
+                    <a href="/Risk/Edit/@Model.RiskId" class="btn btn-primary rounded-pill w-100 text-start px-4 py-2" style="transition: all 0.3s ease;">
+                        <i class="bi bi-pencil me-2"></i> Edit Risk Details
                     </a>
-
-                    <button class="btn btn-success rounded-pill"
-                            onclick="submitRisk(@Model.RiskId)">
-                        <i class="bi bi-send me-1"></i> Submit for Review
+                    <button class="btn btn-success rounded-pill w-100 text-start px-4 py-2" style="transition: all 0.3s ease;" onclick="submitRisk(@Model.RiskId)">
+                        <i class="bi bi-send me-2"></i> Submit for Review
                     </button>
                 }
 
@@ -69,40 +73,59 @@
                 @if ((isChamp || isAdmin) &&
                      (Model.Status == "Submitted" || Model.Status == "UnderReview"))
                 {
-                    <a href="/Risk/Review/@Model.RiskId" class="btn btn-warning rounded-pill">
-                        <i class="bi bi-clipboard-check me-1"></i> Review Risk
+                    hasActions = true;
+                    <a href="/Risk/Review/@Model.RiskId" class="btn btn-warning text-dark rounded-pill w-100 text-start px-4 py-2" style="transition: all 0.3s ease;">
+                        <i class="bi bi-clipboard-check me-2"></i> Review Risk
                     </a>
                 }
 
                 @* Close action — Champion or Admin, Approved only *@
                 @if ((isChamp || isAdmin) && Model.Status == "Approved")
                 {
-                    <button class="btn btn-secondary rounded-pill"
-                            onclick="closeRisk(@Model.RiskId)">
-                        <i class="bi bi-x-circle me-1"></i> Close Risk
+                    hasActions = true;
+                    <button class="btn btn-secondary rounded-pill w-100 text-start px-4 py-2" style="transition: all 0.3s ease;" onclick="closeRisk(@Model.RiskId)">
+                        <i class="bi bi-x-circle me-2"></i> Close Risk
                     </button>
                 }
 
+                @* Completed / Closed state *@
+                @if (Model.Status == "Closed")
+                {
+                    hasActions = true;
+                    <div class="text-center p-3 rounded" style="background: rgba(40, 167, 69, 0.1); border: 1px dashed rgba(40, 167, 69, 0.4);">
+                        <i class="bi bi-check2-circle text-success fs-2 mb-2"></i>
+                        <h6 class="text-success fw-bold mb-1">Risk Closed</h6>
+                        <small class="text-muted d-block">This risk requires no further action.</small>
+                    </div>
+                }
+
                 @* Viewer — no action buttons, read-only message *@
-                @if (userRole == "V")
+                @if (userRole == "V" && Model.Status != "Closed")
                 {
-                    <span class="text-muted fst-italic">
-                        <i class="bi bi-eye me-1"></i> View only access
-                    </span>
+                    hasActions = true;
+                    <div class="d-flex align-items-center text-muted p-3 bg-light rounded bg-opacity-10">
+                        <i class="bi bi-eye fs-4 me-3 text-secondary"></i>
+                        <div>
+                            <span class="fw-semibold d-block">View-Only Access</span>
+                            <small>You can view this risk, but cannot modify it.</small>
+                        </div>
+                    </div>
                 }
                 
-                @if (!isOwner && !isChamp && !isAdmin && userRole == "N")
+                @if (!isOwner && !isChamp && !isAdmin && userRole == "N" && Model.Status != "Closed")
                 {
-                    <span class="text-danger small">No access to this Business Unit.</span>
+                    hasActions = true;
+                    <div class="text-danger small p-3 rounded" style="background: rgba(220, 53, 69, 0.1); border-left: 3px solid #dc3545;">
+                        <i class="bi bi-exclamation-triangle-fill me-2"></i>No access to this Business Unit.
+                    </div>
                 }
-                
-                @if (!((isOwner || isAdmin) && (Model.Status == "Draft" || Model.Status == "RevisionRequired")) &&
-                     !((isChamp || isAdmin) && (Model.Status == "Submitted" || Model.Status == "UnderReview")) &&
-                     !((isChamp || isAdmin) && Model.Status == "Approved") &&
-                     userRole != "V" &&
-                     !(!isOwner && !isChamp && !isAdmin && userRole == "N"))
+
+                @if (!hasActions)
                 {
-                    <span class="text-muted fst-italic small"><i class="bi bi-info-circle me-1"></i> No workflow actions available at this stage.</span>
+                    <div class="text-center p-4 text-muted">
+                        <i class="bi bi-inbox fs-1 mb-2 opacity-50"></i>
+                        <p class="mb-0 small fw-medium">No actions available for your role at this time.</p>
+                    </div>
                 }
             </div>
         </div>

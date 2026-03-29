@@ -61,6 +61,7 @@ namespace ERMS.Web.Controllers
             }
 
             ViewData["Title"] = "Edit Risk";
+            ViewData["RiskId"] = risk.Data.RiskId;
             return View(risk.Data);
         }
 
@@ -96,6 +97,7 @@ namespace ERMS.Web.Controllers
             }
 
             ViewData["Title"] = "Review Risk";
+            ViewBag.IsAdmin = IsAdmin;
             return View(risk.Data);
         }
     }
