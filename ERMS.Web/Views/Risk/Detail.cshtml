@@ -47,7 +47,7 @@
 <div class="col-lg-4">
     <!-- Action bar at bottom of detail page (Fix 4) -->
     <div class="card mb-4 shadow-sm border-0">
-        <div class="card-header bg-white py-3"><h6 class="mb-0">Actions</h6></div>
+        <div class="card-header py-3"><h6 class="mb-0">Actions</h6></div>
         <div class="card-body">
             <div class="action-bar d-flex flex-column gap-2">
 
@@ -94,6 +94,15 @@
                 @if (!isOwner && !isChamp && !isAdmin && userRole == "N")
                 {
                     <span class="text-danger small">No access to this Business Unit.</span>
+                }
+                
+                @if (!((isOwner || isAdmin) && (Model.Status == "Draft" || Model.Status == "RevisionRequired")) &&
+                     !((isChamp || isAdmin) && (Model.Status == "Submitted" || Model.Status == "UnderReview")) &&
+                     !((isChamp || isAdmin) && Model.Status == "Approved") &&
+                     userRole != "V" &&
+                     !(!isOwner && !isChamp && !isAdmin && userRole == "N"))
+                {
+                    <span class="text-muted fst-italic small"><i class="bi bi-info-circle me-1"></i> No workflow actions available at this stage.</span>
                 }
             </div>
         </div>

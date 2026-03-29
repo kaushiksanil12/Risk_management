@@ -23,7 +23,10 @@ async function loadDashboard(userId, adminFlag) {
         renderChart('statusChart', 'doughnut', d.risksByStatus || [], 'status', 'cnt', statusColors);
         renderChart('buChart', 'bar', d.risksByBU || [], 'buName', 'cnt', buColors);
         renderChart('catChart', 'doughnut', d.risksByCategory || [], 'riskCatName', 'cnt', catColors);
-        renderChart('fyChart', 'bar', d.risksByFY || [], 'fyName', 'cnt', fyColors);
+        
+        // Sort Financial Years chronologically instead of by count
+        const sortedFY = [...(d.risksByFY || [])].sort((a, b) => String(a.fyName || '').localeCompare(String(b.fyName || '')));
+        renderChart('fyChart', 'bar', sortedFY, 'fyName', 'cnt', fyColors);
 
         // Alerts table
         const tb = document.getElementById('alertsBody');
@@ -46,6 +49,26 @@ async function loadDashboard(userId, adminFlag) {
     }
 }
 
+function formatChartLabel(label) {
+    if (!label) return '';
+    if (label.length > 16 && label.includes(' ')) {
+        const words = label.split(' ');
+        const lines = [];
+        let currentLine = words[0];
+        for (let i = 1; i < words.length; i++) {
+            if (currentLine.length + words[i].length + 1 <= 16) {
+                currentLine += ' ' + words[i];
+            } else {
+                lines.push(currentLine);
+                currentLine = words[i];
+            }
+        }
+        lines.push(currentLine);
+        return lines;
+    }
+    return label;
+}
+
 function renderChart(canvasId, type, data, labelKey, valueKey, colors) {
     const ctx = document.getElementById(canvasId);
     if (!ctx || !data.length) return;
@@ -57,10 +80,43 @@ function renderChart(canvasId, type, data, labelKey, valueKey, colors) {
     const gridColor = isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.05)';
     const surfaceColor = isDark ? '#252526' : '#ffffff';
 
+    const originalLabels = data.map(d => d[labelKey] || '');
+    const formattedLabels = originalLabels.map(lbl => formatChartLabel(lbl));
+
+    // Handle horizontal scroll for bar charts with many items
+    if (type === 'bar') {
+        let parent = ctx.parentElement;
+        let wrapper = parent;
+        if (!parent.classList.contains('chart-scroll-wrapper')) {
+            wrapper = document.createElement('div');
+            wrapper.className = 'chart-scroll-wrapper';
+            wrapper.style.position = 'relative';
+            wrapper.style.height = '100%';
+            parent.style.overflowX = 'auto';
+            parent.style.overflowY = 'hidden';
+            parent.insertBefore(wrapper, ctx);
+            wrapper.appendChild(ctx);
+        }
+        
+        let existingChart = Chart.getChart(ctx);
+        if (existingChart) {
+            existingChart.destroy();
+        }
+        
+        if (data.length > 8) {
+            wrapper.style.minWidth = (data.length * 75) + 'px';
+        } else {
+            wrapper.style.minWidth = '100%';
+        }
+    } else {
+        let existingChart = Chart.getChart(ctx);
+        if (existingChart) existingChart.destroy();
+    }
+
     new Chart(ctx, {
         type: type,
         data: {
-            labels: data.map(d => d[labelKey] || ''),
+            labels: formattedLabels,
             datasets: [{
                 data: data.map(d => d[valueKey]),
                 backgroundColor: colors.slice(0, data.length),
@@ -83,7 +139,16 @@ function renderChart(canvasId, type, data, labelKey, valueKey, colors) {
                     bodyColor: isDark ? '#fff' : '#000',
                     padding: 12,
                     cornerRadius: 8,
-                    displayColors: true
+                    displayColors: true,
+                    callbacks: {
+                        title: function(context) {
+                            let rawLabel = context[0].label;
+                            if (Array.isArray(rawLabel)) {
+                                return rawLabel.join(' ').replace(/,/g, ' ');
+                            }
+                            return rawLabel;
+                        }
+                    }
                 }
             },
             scales: type === 'bar' ? {
@@ -94,7 +159,7 @@ function renderChart(canvasId, type, data, labelKey, valueKey, colors) {
                 },
                 x: { 
                     grid: { display: false, drawBorder: false },
-                    ticks: { padding: 10 }
+                    ticks: { padding: 10, maxRotation: 45, minRotation: 0 }
                 }
             } : {}
         }
